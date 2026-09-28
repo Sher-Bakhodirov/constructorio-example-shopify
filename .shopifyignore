@@ -1,0 +1,9 @@
+# Development-only files: not uploaded to Shopify by the Shopify CLI.
+src/
+docs/
+node_modules/
+package.json
+package-lock.json
+webpack.config.js
+babel.config.js
+postcss.config.js
