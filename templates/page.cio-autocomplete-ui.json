@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
@@ -11,20 +20,40 @@
             "width": "100%",
             "max_width": "normal",
             "alignment": "left",
-            "type_preset": "h2"
+            "type_preset": "h2",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
           },
           "blocks": {}
         },
         "page-content": {
           "type": "page-content",
-          "settings": {},
+          "settings": {
+            "text_color": ""
+          },
           "blocks": {}
         }
       },
-      "block_order": ["heading", "page-content"],
+      "block_order": [
+        "heading",
+        "page-content"
+      ],
       "settings": {
         "content_direction": "column",
         "gap": 32,
+        "background_color": "",
         "padding-block-start": 40,
         "padding-block-end": 0
       }
@@ -34,12 +63,42 @@
       "blocks": {
         "autocomplete": {
           "type": "cio-autocomplete-ui",
-          "settings": {}
+          "settings": {
+            "api_key": "key_QXcSdast8nnuNbsp",
+            "search_url": "",
+            "placeholder": "Search",
+            "open_on_focus": true,
+            "num_suggestions": 8,
+            "num_products": 6,
+            "debounce": 250,
+            "display_suggestion_images": false,
+            "display_suggestion_counts": false,
+            "display_show_all_results": false,
+            "show_recent_searches": true,
+            "recent_searches_label": "Recent searches",
+            "theme_styling": true,
+            "max_width": 800,
+            "alignment": "center",
+            "advanced_options": ""
+          },
+          "blocks": {}
         }
       },
-      "block_order": ["autocomplete"],
-      "settings": {}
+      "block_order": [
+        "autocomplete"
+      ],
+      "settings": {
+        "section_width": "page-width",
+        "content_direction": "column",
+        "gap": 24,
+        "background_color": "",
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
     }
   },
-  "order": ["main", "autocomplete"]
+  "order": [
+    "main",
+    "autocomplete"
+  ]
 }
