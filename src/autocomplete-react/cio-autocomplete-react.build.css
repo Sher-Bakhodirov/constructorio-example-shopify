@@ -1,22 +1,23 @@
 /*
- * Approach B styles.
- * The bundled library injects its own default CSS (all under `.cio-autocomplete`).
+ * Approach C (React) styles.
+ * The library's default CSS (`styles.css`) is imported in the .build.jsx file and
+ * ends up in the same assets/cio-autocomplete-react.min.css output.
  */
 
 @import '../autocomplete-shared/cio-theme.css';
 
-cio-autocomplete-ui {
+cio-autocomplete-react {
   display: flex;
   justify-content: var(--cio-alignment, flex-start);
   width: 100%;
 }
 
-.cio-autocomplete-ui__target {
+.cio-autocomplete-react__target {
   width: 100%;
   max-width: var(--cio-max-width, 100%);
 }
 
-.cio-autocomplete-ui__notice {
+.cio-autocomplete-react__notice {
   padding: 16px;
   border: 1px dashed rgb(var(--color-foreground-rgb) / 40%);
   border-radius: var(--style-border-radius-inputs, 4px);

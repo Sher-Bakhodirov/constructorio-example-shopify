@@ -6,7 +6,7 @@ This demo theme shows three ways to add Constructor autocomplete to Shopify:
 | ------------------------------ | ---------------------------------------------------------------------------- | ------- |
 | **A. Constructor Connect app** | Constructor's Shopify app with a ready-made block                            | Planned |
 | **B. UI library (this doc)**   | Constructor's npm package, bundled using our [build setup](./build-setup.md) | ✅ Done  |
-| **C. React Environment**               | Constructor's npm package used in react environment within Shopify theme | Planned |
+| **C. React Environment**               | Constructor's npm package used in react environment within Shopify theme ([docs](./autocomplete-react.md)) | ✅ Done |
 | **D. Custom UI**               | Our own autocomplete built on Constructor's JavaScript client | Planned |
 
 ## How it works
@@ -128,6 +128,7 @@ The important pieces are:
 * `templates/page.cio-autocomplete-ui.json` — ready-made page template for the demo.
 * `config/settings_schema.json` — adds the shared Constructor API key to the theme settings.
 * `src/autocomplete-ui/` — JavaScript and CSS source code.
+* `src/autocomplete-shared/` — settings-to-options helper and theme CSS, shared with the React version.
 * `assets/` — generated files that Shopify actually serves.
 
 ### From Liquid to the library
@@ -185,7 +186,7 @@ import CioAutocomplete from '@constructor-io/constructorio-ui-autocomplete/const
 
 Because React is included in the bundle, `cio-autocomplete-ui.min.js` is around **290 KB (about 88 KB gzipped)**.
 
-The file is only loaded on pages where the autocomplete block is used, but the bundle size is still the main downside of this approach. This is one of the reasons we are also looking at **Approach C**, where we build the UI ourselves on top of Constructor's JavaScript client.
+The file is only loaded on pages where the autocomplete block is used, but the bundle size is still the main downside of this approach. This is one of the reasons we are also looking at **Approach D**, where we build the UI ourselves on top of Constructor's JavaScript client.
 
 ## Styling
 
@@ -202,7 +203,7 @@ This allows the autocomplete to follow the theme's colors, fonts, and other styl
 
 To change the styling, edit:
 
-`src/autocomplete-ui/cio-autocomplete-ui.build.css`
+`src/autocomplete-shared/cio-theme.css` (shared with the React version), or `src/autocomplete-ui/cio-autocomplete-ui.build.css` for the wrapper only.
 
 Then run:
 

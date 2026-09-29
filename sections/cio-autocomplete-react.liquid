@@ -1,5 +1,5 @@
 {% comment %}
-  Approach B: wrapper section for the "CIO Autocomplete UI" block.
+  Approach C (React): wrapper section for the "CIO Autocomplete React" block.
   Add it to any page template; each page can have its own block settings.
 {% endcomment %}
 
@@ -16,11 +16,11 @@
 
 {% schema %}
 {
-  "name": "CIO Autocomplete UI",
+  "name": "CIO Autocomplete React",
   "class": "section-wrapper",
   "blocks": [
     {
-      "type": "cio-autocomplete-ui"
+      "type": "cio-autocomplete-react"
     },
     {
       "type": "@theme"
@@ -90,11 +90,11 @@
   ],
   "presets": [
     {
-      "name": "CIO Autocomplete UI",
+      "name": "CIO Autocomplete React",
       "category": "Constructor",
       "blocks": {
         "autocomplete": {
-          "type": "cio-autocomplete-ui"
+          "type": "cio-autocomplete-react"
         }
       },
       "block_order": ["autocomplete"]

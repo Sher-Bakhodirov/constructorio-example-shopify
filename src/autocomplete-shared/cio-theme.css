@@ -1,0 +1,127 @@
+/*
+ * Shared by every Constructor autocomplete demo (bundled and React).
+ * When a block's "Use theme styling" option is on, the component gets the
+ * `.cio-theme` class and these rules restyle it with Horizon's CSS variables.
+ */
+
+.cio-autocomplete.cio-theme {
+  height: auto;
+  padding: 0;
+  font-family: inherit;
+  color: var(--color-foreground);
+}
+
+.cio-autocomplete.cio-theme .cio-form {
+  display: flex;
+  width: 100%;
+  height: auto;
+}
+
+.cio-autocomplete.cio-theme .cio-form > label {
+  flex: 1;
+  display: flex;
+}
+
+.cio-autocomplete.cio-theme .cio-input {
+  width: 100%;
+  height: auto;
+  padding: var(--input-padding-y, 12px) 72px var(--input-padding-y, 12px) var(--input-padding-x, 16px);
+  border: var(--style-border-width-inputs, 1px) solid var(--color-input-border);
+  border-radius: var(--style-border-radius-inputs, 4px);
+  background-color: var(--color-input-background);
+  color: var(--color-input-text);
+  font: inherit;
+}
+
+.cio-autocomplete.cio-theme .cio-input:focus-visible {
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 2px;
+}
+
+.cio-autocomplete.cio-theme .cio-submit-btn,
+.cio-autocomplete.cio-theme .cio-clear-btn {
+  top: 50%;
+  bottom: auto;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  transform: translateY(-50%);
+}
+
+.cio-autocomplete.cio-theme .cio-submit-btn {
+  right: 12px;
+}
+
+.cio-autocomplete.cio-theme .cio-clear-btn {
+  right: 40px;
+}
+
+.cio-autocomplete.cio-theme .cio-results {
+  right: 0;
+  left: 0;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 16px;
+  border: var(--style-border-width, 1px) solid var(--color-border);
+  border-radius: var(--style-border-radius-popover, 8px);
+  background-color: var(--color-background);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+/* The library renders an empty list when closed; don't show an empty box. */
+.cio-autocomplete.cio-theme .cio-results:empty {
+  display: none;
+}
+
+.cio-autocomplete.cio-theme .cio-close {
+  top: 16px;
+  right: 16px;
+}
+
+.cio-autocomplete.cio-theme .cio-section-name,
+.cio-autocomplete.cio-theme .cio-sectionName {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.cio-autocomplete.cio-theme .cio-section-search-suggestions .cio-item {
+  padding: 8px;
+}
+
+.cio-autocomplete.cio-theme .cio-suggestion-text,
+.cio-autocomplete.cio-theme .cio-product-text {
+  margin: 0;
+}
+
+.cio-autocomplete.cio-theme .cio-item[aria-selected='true'] {
+  background-color: rgb(var(--color-foreground-rgb) / 8%);
+  border-radius: var(--style-border-radius-inputs, 4px);
+}
+
+.cio-autocomplete.cio-theme .cio-item .cio-product-image {
+  border-radius: var(--product-corner-radius, 4px);
+  object-fit: cover;
+}
+
+.cio-autocomplete.cio-theme .cio-section-footer .cio-show-all-results-button {
+  border: var(--style-border-width-primary, 1px) solid var(--color-primary-button-border);
+  border-radius: var(--style-border-radius-buttons-primary, 4px);
+  background-color: var(--color-primary-button-background);
+  color: var(--color-primary-button-text);
+}
+
+@media screen and (max-width: 749px) {
+  .cio-autocomplete.cio-theme .cio-results {
+    flex-direction: column;
+  }
+
+  .cio-autocomplete.cio-theme .cio-section-products .cio-item {
+    width: 50%;
+  }
+}

@@ -8,7 +8,7 @@ The idea is simple: you write your code in `/src`, and **webpack** builds it int
 
 There is only one convention to remember:
 
-> **Only files ending in `.build.js` or `.build.css` are built.**
+> **Only files ending in `.build.js`, `.build.jsx` or `.build.css` are built.**
 
 For example:
 
@@ -16,6 +16,7 @@ For example:
 | ----------------------------- | ----------------------- |
 | `src/search/search.build.js`  | `assets/search.min.js`  |
 | `src/search/search.build.css` | `assets/search.min.css` |
+| `src/search/search.build.jsx` | `assets/search.min.js` (React/JSX) |
 | `src/search/helpers.js`       | —                       |
 
 Files without `.build` are just helpers. They won't produce their own file in `/assets`; they are included when a `.build` file imports them.
@@ -38,12 +39,12 @@ Webpack watches `/src` and writes the output to `/assets`. The Shopify CLI then 
 
 ## What happens during the build
 
-### JavaScript (`*.build.js`)
+### JavaScript (`*.build.js` / `*.build.jsx`)
 
 Webpack:
 
 1. Follows the `import`s and bundles everything into one file.
-2. Uses **Babel** to transform modern JavaScript syntax for the browsers we support.
+2. Uses **Babel** to transform modern JavaScript syntax for the browsers we support, and to turn React's JSX (`<Component />`) into plain JavaScript.
 3. Uses **Terser** to minify the result.
 
 ### CSS (`*.build.css`)
@@ -134,3 +135,5 @@ import x from 'some-package';
 | `postcss.config.js`    | PostCSS and Autoprefixer configuration.                                                                                    |
 | `.shopifyignore`       | Prevents `/src`, `/docs`, `node_modules`, and build configuration files from being uploaded to Shopify.                    |
 | `src/autocomplete-ui/` | Example implementation of the Constructor Autocomplete UI. See [autocomplete-ui-library.md](./autocomplete-ui-library.md). |
+| `src/autocomplete-react/` | The same UI library used as React components. See [autocomplete-react.md](./autocomplete-react.md). |
+| `src/autocomplete-shared/` | Helpers and theme CSS shared by the autocomplete demos. |

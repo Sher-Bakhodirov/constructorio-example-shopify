@@ -1,7 +1,7 @@
 {% comment %}
-  Approach B: Constructor Autocomplete UI library (official npm package), bundled by our build.
-  Source: src/autocomplete-ui/ -> assets/cio-autocomplete-ui.min.js / .min.css
-  Docs: docs/autocomplete-ui-library.md
+  Approach C (React): Constructor Autocomplete UI library used as React components (<CioAutocomplete />).
+  Source: src/autocomplete-react/ -> assets/cio-autocomplete-react.min.js / .min.css
+  Docs: docs/autocomplete-react.md
 {% endcomment %}
 
 {% liquid
@@ -9,20 +9,20 @@
   assign search_url = block.settings.search_url | default: routes.search_url
 %}
 
-{{ 'cio-autocomplete-ui.min.css' | asset_url | stylesheet_tag }}
+{{ 'cio-autocomplete-react.min.css' | asset_url | stylesheet_tag }}
 <script
-  src="{{ 'cio-autocomplete-ui.min.js' | asset_url }}"
+  src="{{ 'cio-autocomplete-react.min.js' | asset_url }}"
   defer
 ></script>
 
-<cio-autocomplete-ui
+<cio-autocomplete-react
   style="--cio-max-width: {{ block.settings.max_width }}px; --cio-alignment: {{ block.settings.alignment }};"
   {{ block.shopify_attributes }}
 >
   {% if api_key != blank %}
     <div
       id="cio-autocomplete-{{ block.id }}"
-      class="cio-autocomplete-ui__target"
+      class="cio-autocomplete-react__target"
       data-cio-target
     ></div>
 
@@ -50,20 +50,20 @@
       </script>
     {% endif %}
   {% elsif request.design_mode %}
-    <p class="cio-autocomplete-ui__notice">
+    <p class="cio-autocomplete-react__notice">
       Constructor Autocomplete: add an API key in this block, or in Theme settings &rarr; Constructor.
     </p>
   {% endif %}
-</cio-autocomplete-ui>
+</cio-autocomplete-react>
 
 {% schema %}
 {
-  "name": "CIO Autocomplete UI",
+  "name": "CIO Autocomplete React",
   "tag": null,
   "settings": [
     {
       "type": "paragraph",
-      "content": "Approach B: Constructor's official Autocomplete UI library, bundled by the theme build."
+      "content": "Approach C (React): Constructor's Autocomplete UI library used as React components, compiled by the theme build."
     },
     {
       "type": "header",
@@ -202,7 +202,7 @@
   ],
   "presets": [
     {
-      "name": "CIO Autocomplete UI",
+      "name": "CIO Autocomplete React",
       "category": "Constructor"
     }
   ]

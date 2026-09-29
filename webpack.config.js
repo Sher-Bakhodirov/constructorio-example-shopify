@@ -8,9 +8,9 @@ const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
 const SRC_DIR = path.resolve(__dirname, 'src');
 const ASSETS_DIR = path.resolve(__dirname, 'assets');
 
-// Only files ending in `.build.js` or `.build.css` become output files.
+// Only files ending in `.build.js`, `.build.jsx` or `.build.css` become output files.
 // Everything else in /src is a helper that can be imported by them.
-const BUILD_FILE = /\.build\.(js|css)$/;
+const BUILD_FILE = /\.build\.(jsx?|css)$/;
 
 /**
  * Walks /src and returns every file path matching BUILD_FILE.
@@ -28,6 +28,7 @@ function findBuildFiles(dir) {
 /**
  * Turns the list of build files into webpack entries.
  * `src/any/folder/foo.build.js`  -> `assets/foo.min.js`
+ * `src/any/folder/foo.build.jsx` -> `assets/foo.min.js`
  * `src/any/folder/foo.build.css` -> `assets/foo.min.css`
  */
 function createEntries() {
@@ -35,7 +36,8 @@ function createEntries() {
   const sources = {};
 
   for (const file of findBuildFiles(SRC_DIR)) {
-    const ext = path.extname(file);
+    // `.jsx` entries still produce a `.min.js` file.
+    const ext = path.extname(file) === '.css' ? '.css' : '.js';
     const name = path.basename(file).replace(BUILD_FILE, '');
     const key = `${name}${ext}`;
 
@@ -61,7 +63,7 @@ module.exports = (_env, argv) => {
   const entry = createEntries();
 
   if (Object.keys(entry).length === 0) {
-    console.warn('No *.build.js or *.build.css files found in /src. Nothing to build.');
+    console.warn('No *.build.js, *.build.jsx or *.build.css files found in /src. Nothing to build.');
   }
 
   return {
@@ -77,14 +79,16 @@ module.exports = (_env, argv) => {
       clean: false,
     },
     resolve: {
+      extensions: ['.js', '.jsx', '...'],
       alias: { '@': SRC_DIR },
     },
     module: {
       rules: [
         {
-          test: /\.m?js$/,
+          test: /\.(m?js|jsx)$/,
           exclude: /node_modules/,
-          use: 'babel-loader',
+          // Passes webpack's mode to babel.config.js so JSX compiles for the right React build.
+          use: { loader: 'babel-loader', options: { caller: { mode: isProduction ? 'production' : 'development' } } },
         },
         {
           test: /\.css$/,
@@ -115,5 +119,10 @@ module.exports = (_env, argv) => {
       splitChunks: false,
     },
     performance: { hints: false },
+    ignoreWarnings: [
+      // Constructor's JS client checks for `require` at runtime to support Node too.
+      // Harmless in the browser build.
+      { module: /constructorio-client-javascript/, message: /Critical dependency/ },
+    ],
   };
 };
