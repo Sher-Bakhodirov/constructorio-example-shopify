@@ -2116,5 +2116,20 @@
         "default": "equal-width-buttons"
       }
     ]
+  },
+  {
+    "name": "Constructor",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Shared settings for the Constructor integration demos. Each Constructor block can override them."
+      },
+      {
+        "type": "text",
+        "id": "cio_api_key",
+        "label": "API key",
+        "info": "Your Constructor index key, e.g. key_XXXXXXXXXXXX."
+      }
+    ]
   }
 ]

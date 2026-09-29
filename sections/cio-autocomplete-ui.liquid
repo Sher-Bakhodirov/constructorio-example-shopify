@@ -1,0 +1,104 @@
+{% comment %}
+  Approach A: wrapper section for the "CIO Autocomplete UI" block.
+  Add it to any page template; each page can have its own block settings.
+{% endcomment %}
+
+{% capture children %}
+  {% content_for 'blocks' %}
+{% endcapture %}
+
+{% render 'section',
+  section: section,
+  children: children,
+  section_id: section.id,
+  background_color: section.settings.background_color
+%}
+
+{% schema %}
+{
+  "name": "CIO Autocomplete UI",
+  "class": "section-wrapper",
+  "blocks": [
+    {
+      "type": "cio-autocomplete-ui"
+    },
+    {
+      "type": "@theme"
+    }
+  ],
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "t:settings.width",
+      "options": [
+        { "value": "page-width", "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "select",
+      "id": "content_direction",
+      "label": "t:settings.direction",
+      "options": [
+        { "value": "column", "label": "t:options.vertical" },
+        { "value": "row", "label": "t:options.horizontal" }
+      ],
+      "default": "column"
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "t:settings.gap",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:settings.background_color",
+      "alpha": true
+    },
+    {
+      "type": "header",
+      "content": "t:content.padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "t:settings.top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "t:settings.bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "CIO Autocomplete UI",
+      "category": "Constructor",
+      "blocks": {
+        "autocomplete": {
+          "type": "cio-autocomplete-ui"
+        }
+      },
+      "block_order": ["autocomplete"]
+    }
+  ]
+}
+{% endschema %}

@@ -1,85 +1,136 @@
 # Build setup (JS & CSS)
 
-This theme has a small build step. You write code in `/src`, and **webpack** turns it into small, browser-ready files in `/assets`, which is the folder Shopify serves.
+This theme has a small build step for JavaScript and CSS. You don't need it for the Constructor integration, so you can skip it and have your own setup.
 
-## The one rule
+The idea is simple: you write your code in `/src`, and **webpack** builds it into browser-ready files in `/assets`, which Shopify can serve.
 
-> **Only files named `*.build.js` or `*.build.css` get built.**
+## How it works
 
-That's the whole convention.
+There is only one convention to remember:
 
-| You write in `/src`                        | You get in `/assets`   |
-| ------------------------------------------ | ---------------------- |
-| `src/search/search.build.js`               | `assets/search.min.js` |
-| `src/search/search.build.css`              | `assets/search.min.css`|
-| `src/search/helpers.js` (no `.build`)      | nothing on its own     |
+> **Only files ending in `.build.js` or `.build.css` are built.**
 
-Files **without** `.build` in the name are helpers. They don't become files in `/assets`. They only end up in the output when a `.build` file imports them.
+For example:
 
-## Quick start
+| Source                        | Output                  |
+| ----------------------------- | ----------------------- |
+| `src/search/search.build.js`  | `assets/search.min.js`  |
+| `src/search/search.build.css` | `assets/search.min.css` |
+| `src/search/helpers.js`       | —                       |
 
-You need [Node.js](https://nodejs.org) installed. Then, from the project root:
+Files without `.build` are just helpers. They won't produce their own file in `/assets`; they are included when a `.build` file imports them.
+
+## Getting started
+
+You need [Node.js](https://nodejs.org/) installed.
+
+From the project root:
 
 ```sh
-npm install        # once, to download the build tools
-npm run dev        # while you work: rebuilds every time you save
-npm run build      # before you commit or deploy: final, minified files
+npm install        # first time only
+npm run dev        # rebuild while you work
+npm run build      # create the final minified files
 ```
 
-Run `npm run dev` in one terminal and `shopify theme dev` in another. Webpack writes to `/assets`, and the Shopify CLI uploads the changes to your store.
+While developing, run `npm run dev` in one terminal and `shopify theme dev` in another.
 
-## What happens to your code
+Webpack watches `/src` and writes the output to `/assets`. The Shopify CLI then picks up those changes and uploads them to your development store.
 
-**JavaScript** (`*.build.js`)
-1. Webpack pulls in everything the file `import`s and combines it into **one file**.
-2. **Babel** rewrites modern syntax so the browsers we support can run it.
-3. **Terser** minifies it: removes spaces and comments and shortens names.
+## What happens during the build
 
-**CSS** (`*.build.css`)
-1. Any `@import`ed CSS is inlined into **one file**.
-2. **Autoprefixer** adds browser prefixes such as `-webkit-` where they're needed.
-3. The result is minified.
+### JavaScript (`*.build.js`)
 
-Which browsers count as "supported" is set in the `browserslist` field of `package.json`. Right now it's `"defaults"`, meaning current, widely used browsers.
+Webpack:
 
-## Adding a new file
+1. Follows the `import`s and bundles everything into one file.
+2. Uses **Babel** to transform modern JavaScript syntax for the browsers we support.
+3. Uses **Terser** to minify the result.
 
-1. Create a file, e.g. `src/autocomplete/autocomplete.build.js`.
-2. Run `npm run build`. If `npm run dev` is running, stop it and start it again, because new files are only found at startup.
-3. You now have `assets/autocomplete.min.js`. Load it in Liquid:
+### CSS (`*.build.css`)
+
+The CSS build:
+
+1. Inlines any `@import`ed CSS.
+2. Uses **Autoprefixer** to add browser prefixes such as `-webkit-` when needed.
+3. Minifies the result.
+
+The supported browsers are configured through `browserslist` in `package.json`. At the moment, it uses `"defaults"`.
+
+## Adding a new entry point
+
+If you want to add a new JS or CSS entry point:
+
+1. Create a `.build` file, for example:
+
+   `src/autocomplete/autocomplete.build.js`
+
+2. Run `npm run build`.
+
+   If `npm run dev` is already running, restart it. New entry points are detected when webpack starts.
+
+3. Webpack will create:
+
+   `assets/autocomplete.min.js`
+
+4. You can then include it from Liquid:
 
 ```liquid
 <script src="{{ 'autocomplete.min.js' | asset_url }}" defer></script>
+
 {{ 'autocomplete.min.css' | asset_url | stylesheet_tag }}
 ```
 
 ## Imports
 
-You can import helpers with relative paths, or with `@/`, which points to `/src`:
+You can import local files using relative paths or `@/`, which points to `/src`.
 
 ```js
-import { log } from '@/utils/log';   // same as '../utils/log'
+import { log } from '@/utils/log';
+
+// Same as:
+// import { log } from '../utils/log';
 ```
 
-npm packages work too. `npm install some-package`, then `import x from 'some-package'`.
+You can also use npm packages:
 
-## Good to know
+```sh
+npm install some-package
+```
 
-- **Folders don't matter for the output name.** `src/a/b/foo.build.js` still becomes `assets/foo.min.js`. So two build files can't share a name. If they do, the build stops and tells you which ones clash.
-- **A `.js` and a `.css` with the same name are fine.** `foo.build.js` + `foo.build.css` → `foo.min.js` + `foo.min.css`.
-- **Commit the `.min` files.** Shopify only sees `/assets`, so the built files must be in git (and deployed).
-- **Don't edit `.min` files by hand.** The next build overwrites them. Change the file in `/src` instead.
-- **Horizon's own files are untouched.** The original theme JS/CSS in `/assets` is not part of this build, and the build never deletes anything in `/assets`.
-- **`url(...)` in CSS is left as-is**, so Shopify asset URLs keep working.
-- **Dev vs. build:** `npm run dev` output isn't minified and includes source maps, so errors in the browser point to your original `/src` lines. Always run `npm run build` before committing.
+```js
+import x from 'some-package';
+```
 
-## The files involved
+## A few things to keep in mind
 
-| File                | What it does                                                          |
-| ------------------- | --------------------------------------------------------------------- |
-| `package.json`      | Lists the tools and defines `npm run dev` / `npm run build`.          |
-| `webpack.config.js` | Finds the `*.build.*` files and says where to put the results.        |
-| `babel.config.js`   | Babel settings for JavaScript.                                        |
-| `postcss.config.js` | Autoprefixer settings for CSS.                                        |
-| `.shopifyignore`    | Stops `/src`, `/docs`, `node_modules`, and configs from being uploaded to Shopify. |
-| `src/example/`      | A small working example (`example.build.js` / `.css`). Delete it once you have real files. |
+* **The folder structure doesn't affect the output filename.**
+  `src/a/b/foo.build.js` becomes `assets/foo.min.js`. This means two build files can't have the same filename, even if they're in different folders.
+
+* **JS and CSS can have the same name.**
+  `foo.build.js` and `foo.build.css` become `foo.min.js` and `foo.min.css`.
+
+* **Commit the generated `.min` files.**
+  Shopify only gets the files in `/assets`, so the built files need to be committed and deployed.
+
+* **Don't edit `.min` files manually.**
+  Your changes will be overwritten the next time you run the build. Make changes in `/src` instead.
+
+* **Existing theme assets are not affected.**
+  The build only handles files from `/src`. It doesn't modify or delete the existing JS/CSS files in `/assets`.
+
+* **CSS `url(...)` values are kept as-is.**
+  This allows Shopify asset URLs to work normally.
+
+* **Development and production builds are different.**
+  `npm run dev` produces unminified files with source maps, which makes browser errors point back to your original `/src` files. Run `npm run build` before committing so the committed files are the final minified versions.
+
+## Files involved
+
+| File                   | Purpose                                                                                                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `package.json`         | Defines the dependencies and `npm run dev` / `npm run build` scripts.                                                      |
+| `webpack.config.js`    | Finds `*.build.*` files and configures the build output.                                                                   |
+| `babel.config.js`      | Babel configuration for JavaScript.                                                                                        |
+| `postcss.config.js`    | PostCSS and Autoprefixer configuration.                                                                                    |
+| `.shopifyignore`       | Prevents `/src`, `/docs`, `node_modules`, and build configuration files from being uploaded to Shopify.                    |
+| `src/autocomplete-ui/` | Example implementation of the Constructor Autocomplete UI. See [autocomplete-ui-library.md](./autocomplete-ui-library.md). |
