@@ -109,6 +109,7 @@ At a high level, the files work together like this:
 
 ```text
 src/autocomplete-ui/cio-autocomplete-ui.build.js    ─┐
+src/autocomplete-ui/overrides/custom-product-item.js │  (our own product markup)
 src/autocomplete-ui/cio-autocomplete-ui.build.css   ─┤
                                                      │ npm run build
                                                      ▼
@@ -131,6 +132,7 @@ The important pieces are:
 * `templates/page.cio-autocomplete-ui.json` — ready-made page template for the demo.
 * `config/settings_schema.json` — adds the shared Constructor API key to the theme settings.
 * `src/autocomplete-ui/` — JavaScript and CSS source code.
+* `src/autocomplete-ui/overrides/` — our own product markup (see [Overriding components](#overriding-components)).
 * `src/autocomplete-shared/` — settings-to-options helper and theme CSS, shared with the React version.
 * `assets/` — generated files that Shopify actually serves.
 
@@ -156,7 +158,61 @@ Whenever the browser finds a `<cio-autocomplete-ui>` element, the setup code rea
 CioAutocomplete({ selector, ...options });
 ```
 
-The library then renders the search box and dropdown inside the target `<div>`.
+The library then renders the search box and dropdown inside the target `<div>`, using our own markup for products (see below).
+
+## Overriding components
+
+The UI library lets you replace parts of its UI with your own markup. We override one part, **the product items**, to show that it's possible. Everything else is the library's default.
+
+### Why not React components?
+
+In the [React version](./autocomplete-react.md#overriding-components) we pass our own React components as children. The bundled build can't do that: React is bundled **inside** the library, so our code can't hand it React components.
+
+Instead, each section accepts a **`renderItem`** function that returns a **plain DOM element**.
+
+### Example: our own product card
+
+`src/autocomplete-ui/overrides/custom-product-item.js` builds a product card with image, title and price. It has a purple border so it's easy to tell apart from the library's default:
+
+```js
+export default function renderCustomProductItem({ item }) {
+  const card = document.createElement('div');
+  card.className = 'cio-custom-product';
+  // … image, title and price
+  return card;
+}
+```
+
+We attach it to the **Products** section only, so suggestions keep the library's default look:
+
+```js
+sections: options.sections.map((section) =>
+  section.indexSectionName === 'Products'
+    ? { ...section, renderItem: renderCustomProductItem }
+    : section
+),
+```
+
+The library wraps the returned element in its own list item. That wrapper still handles, for us:
+
+* clicking the product and navigating to its page;
+* keyboard navigation and highlighting;
+* Constructor's tracking events;
+* the ARIA attributes for screen readers.
+
+So we only write the markup, not the behavior.
+
+The card is built with `textContent` and `setAttribute`, never `innerHTML`, so product names from the API can't inject HTML.
+
+### What `renderItem` can and can't do
+
+| Can | Can't |
+| --- | --- |
+| Replace one result (a product or a suggestion) | Replace the search input or the dropdown layout |
+| Differ per section | Use React components or hooks |
+| Use plain DOM APIs | Change the library's behavior (it still handles clicks and keys) |
+
+If you need to replace the input or the dropdown layout, use the [React version](./autocomplete-react.md#overriding-components), which supports overriding every part of the UI.
 
 ### Why use a custom element?
 

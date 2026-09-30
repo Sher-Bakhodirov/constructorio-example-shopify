@@ -2,6 +2,20 @@
 // The "bundled" build ships with React inside, so the theme itself doesn't need React.
 import CioAutocomplete from '@constructor-io/constructorio-ui-autocomplete/constructorio-ui-autocomplete-bundled';
 import { readOptions } from '@/autocomplete-shared/options';
+import renderCustomProductItem from './overrides/custom-product-item';
+
+/**
+ * Swaps in our own product markup via the Products section's `renderItem`.
+ * Other sections keep the library's default rendering.
+ */
+function withCustomProductItem(options) {
+  return {
+    ...options,
+    sections: options.sections?.map((section) =>
+      section.indexSectionName === 'Products' ? { ...section, renderItem: renderCustomProductItem } : section
+    ),
+  };
+}
 
 /**
  * <cio-autocomplete-ui>
@@ -23,7 +37,7 @@ class CioAutocompleteUi extends HTMLElement {
 
     this.mounted = true;
 
-    CioAutocomplete({ ...options, selector: `#${target.id}` });
+    CioAutocomplete({ ...withCustomProductItem(options), selector: `#${target.id}` });
   }
 }
 

@@ -44,7 +44,7 @@ The gzip and Brotli numbers are more relevant for page performance because Shopi
 
 So the custom implementation is roughly **3× smaller than B and 4× smaller than C** when comparing the gzipped JavaScript.
 
-Approach A (the Connect app) isn't in the table because its JavaScript isn't in our `/assets`: the app loads Constructor's bundled UI library from Constructor's CDN, so it's in the same range as B. See [autocomplete-connect-app.md](./autocomplete-connect-app.md#size).
+Approach A (the Connect app) isn't in the table because its JavaScript isn't in our `/assets`: the app loads Constructor's bundled UI library from Constructor's CDN, so it's in the same range as B. See [autocomplete-connect-app.md](./autocomplete-connect-app.md).
 
 ### What's in the bundles?
 

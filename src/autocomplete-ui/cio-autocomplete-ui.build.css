@@ -22,3 +22,49 @@ cio-autocomplete-ui {
   border-radius: var(--style-border-radius-inputs, 4px);
   font-size: 14px;
 }
+
+/* ---------- Custom product item (overrides/custom-product-item.js) ---------- */
+
+/* The library wraps our element in its own item; keep that wrapper plain. */
+.cio-autocomplete .cio-section-products .cio-item:has(.cio-custom-product) {
+  height: auto;
+  padding: 4px;
+  border-bottom: 0;
+}
+
+/* A distinct border color, so the overridden item is easy to spot in the demo. */
+.cio-custom-product {
+  --cio-custom-product-accent: #6d28d9;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 8px;
+  border: 2px solid var(--cio-custom-product-accent);
+  border-radius: var(--style-border-radius-inputs, 4px);
+}
+
+.cio-item[aria-selected='true'] .cio-custom-product {
+  background-color: rgb(109 40 217 / 8%);
+}
+
+.cio-custom-product__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--product-corner-radius, 4px);
+}
+
+.cio-custom-product__title,
+.cio-custom-product__price {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.cio-custom-product__price {
+  font-weight: 600;
+}
