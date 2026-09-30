@@ -32,9 +32,9 @@ cio-autocomplete-ui {
   border-bottom: 0;
 }
 
-/* A distinct border color, so the overridden item is easy to spot in the demo. */
+/* A distinct border color (teal for bundled, purple for React), so the overridden item is easy to spot. */
 .cio-custom-product {
-  --cio-custom-product-accent: #6d28d9;
+  --cio-custom-product-accent: #0f766e;
 
   box-sizing: border-box;
   display: flex;
@@ -47,7 +47,7 @@ cio-autocomplete-ui {
 }
 
 .cio-item[aria-selected='true'] .cio-custom-product {
-  background-color: rgb(109 40 217 / 8%);
+  background-color: rgb(15 118 110 / 8%);
 }
 
 .cio-custom-product__image {

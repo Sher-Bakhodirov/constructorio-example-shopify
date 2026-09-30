@@ -1,0 +1,23 @@
+/*
+ * Constructor PLP (bundled) styles.
+ * The bundled library injects its own starter CSS (scoped to `.cio-plp`) at runtime.
+ */
+
+@import '../plp-shared/cio-plp-theme.css';
+
+cio-plp-ui {
+  display: block;
+  width: 100%;
+}
+
+.cio-plp-ui__notice {
+  padding: 16px;
+  border: 1px dashed rgb(var(--color-foreground-rgb) / 40%);
+  border-radius: var(--style-border-radius-inputs, 4px);
+  font-size: 14px;
+}
+
+/* The shared card is purple (React); teal here tells the bundled override apart. */
+cio-plp-ui .cio-custom-card {
+  --cio-custom-card-accent: #0f766e;
+}

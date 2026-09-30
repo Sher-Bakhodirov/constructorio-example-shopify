@@ -172,7 +172,7 @@ Instead, each section accepts a **`renderItem`** function that returns a **plain
 
 ### Example: our own product card
 
-`src/autocomplete-ui/overrides/custom-product-item.js` builds a product card with image, title and price. It has a purple border so it's easy to tell apart from the library's default:
+`src/autocomplete-ui/overrides/custom-product-item.js` builds a product card with image, title and price. It has a teal border (the React overrides are purple) so it's easy to tell apart from the library's default:
 
 ```js
 export default function renderCustomProductItem({ item }) {

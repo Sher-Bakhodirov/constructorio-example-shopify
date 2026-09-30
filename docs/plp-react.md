@@ -1,12 +1,19 @@
-# PLP - React
+# PLP — Approach C: React environment
 
-This demo shows how to use Constructor's **PLP UI library** with React in a Shopify theme.
+This demo theme shows four ways to add a Constructor-powered product listing page (PLP) to Shopify:
 
-PLP stands for **product listing page** - the page where shoppers see a grid of products along with filters, sorting and pagination. In this demo, Constructor handles a single collection page - `/collections/boys`.
+| Approach                       | What it is                                            | Docs                     |
+| ------------------------------ | ----------------------------------------------------- | ------------------------ |
+| **A. Constructor Connect app** | Constructor's Shopify app with a ready-made PLP block | No doc yet               |
+| **B. UI library**              | Constructor's npm package, bundled build              | [plp-ui.md](./plp-ui.md) |
+| **C. React environment**       | The same npm package, used as React components        | **this doc**             |
+| **D. Custom UI**               | Our own PLP on Constructor's JavaScript client        | Not built yet            |
+
+PLP stands for **product listing page**: the grid of products with filters, sorting and pagination that shoppers see on a collection page or on search results.
 
 ## How it works
 
-The demo installs Constructor's [PLP UI library](https://github.com/Constructor-io/constructorio-ui-plp) from npm and renders its React component:
+Some merchants already use React on their storefront. For those stores, Constructor's PLP React component can be used directly:
 
 ```jsx
 import CioPlp from '@constructor-io/constructorio-ui-plp';
@@ -14,264 +21,255 @@ import CioPlp from '@constructor-io/constructorio-ui-plp';
 <CioPlp apiKey="key_…" useShopifyDefaults />
 ```
 
-`<CioPlp>` handles the main PLP functionality: it reads the current URL, gets the results from Constructor, and renders the filters, sorting, product grid and pagination.
+This approach shows how to do the same inside a Shopify theme. We install React and Constructor's [PLP UI library](https://github.com/Constructor-io/constructorio-ui-plp) from npm, write a small React app in `/src`, and our [build setup](./build-setup.md) compiles it into `assets/cio-plp-react.min.js`.
 
-The same component works for both collections and search. It uses the current URL to figure out what to request:
+`<CioPlp>` does the whole page: it reads the URL, fetches results from Constructor, and renders the filters, sorting, product grid and pagination.
 
-* `/collections/boys` → browse the `boys` group
+**The library decides what to show from the URL:**
+
+* `/collections/shoes` → browse the `shoes` group
 * `/search?q=shoe` → search for `shoe`
 
-The [build setup](./build-setup.md) bundles the React app into `assets/cio-plp-react.min.js`.
+So the same block works on both collection and search pages.
+
+The result looks and behaves the same as [Approach B](./plp-ui.md). The difference is how the library is integrated: instead of the bundled build, we use its React components directly.
 
 ## Using it in Shopify
 
-There are a few ways to use the PLP in the theme.
+### 1. Set the API key
 
-1. **Set the API key.** Go to **Theme settings → Constructor**, or set a different key on the block.
+In the theme editor, go to:
 
-2. **Use it on a collection page.** Open a collection in Shopify admin and select the `collection.cio-plp-react` template.
+**Theme settings → Constructor**
 
-3. **Use it on the search page.** In the theme editor, open **Search** and select the `search.cio-plp-react` template. You can also preview it with `/search?q=shoe&view=cio-plp-react`.
+Paste your Constructor index key (`key_...`). You can also override it for an individual block.
 
-4. **Add the block manually.** In the theme editor, choose **Add section → CIO PLP React**.
+### 2. Use it on a collection page
 
-You can also preview a template without assigning it to a page by adding `?view=<template>` to the URL:
+In Shopify admin, open a collection and, under **Theme template**, select:
+
+`collection.cio-plp-react`
+
+### 3. Use it on the search page
+
+In the theme editor, open **Search** and select the `search.cio-plp-react` template.
+
+### 4. Or preview without assigning
+
+Add `?view=cio-plp-react` to any collection or search URL:
 
 ```text
 /collections/shoes?view=cio-plp-react
+/search?q=shoe&view=cio-plp-react
 ```
 
-### Block settings
+You can also add **CIO PLP React** as a section from the theme editor.
 
-| Setting                 | What it does                                                       |
-| ----------------------- | ------------------------------------------------------------------ |
-| API key                 | Overrides the API key from Theme settings for this block.          |
-| Products per page       | Controls how many products are shown on each page.                 |
-| Use custom product card | Uses our custom product card instead of the library's default one. |
+## Block settings
+
+| Setting                 | What it does                                                                                                         |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| API key                 | Overrides the key from Theme settings for this block.                                                                |
+| Products per page       | How many products each page shows.                                                                                   |
+| Use custom product card | Shows our own product card (see [Overriding components](#overriding-components)). Off = the library's default card. |
 
 ## The templates
 
-The two templates keep the existing Horizon page heading and replace its product grid with Constructor's PLP:
+Both templates keep Horizon's page heading and **replace Horizon's product grid** with the Constructor PLP:
 
 ```text
 collection.cio-plp-react.json        search.cio-plp-react.json
-
 ├── section   ← collection title     ├── search   ← "Search results" + search box
 └── plp       ← Constructor PLP      └── plp      ← Constructor PLP
 ```
 
-So Horizon still provides the page heading/search box, but the filters, sorting, product grid and pagination all come from Constructor.
+## What shoppers see
 
-## Shopify-specific changes
+* Filters (for example price, color, vendor and size), sorting and pagination.
+* On search pages, a results header such as "357 results for 'shoe'", plus category filters.
+* Filtering, sorting and changing pages keep Shopify's URLs, for example `/collections/shoes?filters[color]=Black`.
+* Clicking a product opens its product page on the current domain.
+* **Add to cart** adds the product to the Shopify cart and refreshes Horizon's cart drawer and cart icon. If **Auto-open cart drawer** is on in the theme settings, the drawer opens.
 
-The PLP library already has Shopify support through `useShopifyDefaults`, but there are a few things we need to handle in the theme.
-
-### 1. Keep product links on the current domain
-
-The catalog contains product URLs with the store's `myshopify.com` domain.
-
-That means a product link could send a shopper away from the current domain when you're running the theme locally or using a custom domain.
-
-We pass `itemFieldGetters.getItemUrl` to keep only the path:
-
-```text
-/products/berri-canvas-slip-on-black
-```
-
-The browser then uses the current domain automatically.
-
-### 3. Use the Shopify variant ID when adding to cart
-
-Shopify's `/cart/add.js` endpoint needs a **variant ID**.
-
-The library's Shopify defaults normally use the item's `__shopify_id`, falling back to the product handle if that field isn't available. Our catalog doesn't contain `__shopify_id`, so Shopify rejects the request.
-
-In `Plp.jsx`, our `onAddToCart` callback uses `variationId` instead. In this catalog, `variationId` is the Shopify variant ID.
-
-After adding the product, we also fire the same `CartLinesUpdateEvent` that Horizon's own "Add to cart" flow uses. Horizon's cart drawer and cart icon listen for this event and update themselves.
-
-If **Auto-open cart drawer** is enabled in the theme settings, the cart drawer opens as well.
-
-## Customizing the product card
-
-The PLP library lets you replace parts of its UI. This demo replaces the **product card** to show how that works.
-
-Our custom card lives in:
-
-```text
-src/plp-react/overrides/CustomProductCard.jsx
-```
-
-It contains the product image, title, price and an "Add to cart" button. It also has a purple border so it's easy to distinguish from the library's default card.
-
-We pass it to the PLP through `renderOverrides`:
-
-```jsx
-<CioPlp
-  apiKey={settings.apiKey}
-  renderOverrides={{
-    productCard: {
-      renderHtml: CustomProductCard
-    }
-  }}
-/>
-```
-
-The library calls our component with the same props used by its own product card:
-
-```jsx
-export default function CustomProductCard({
-  item,
-  productInfo,
-  formatPrice,
-  onClick,
-  onAddToCart
-}) {
-  const { itemName, itemPrice, itemImageUrl, itemUrl } = productInfo;
-
-  return (
-    <div className="cio-custom-card">
-      <a href={itemUrl} onClick={(event) => onClick(event, item)}>
-        …
-      </a>
-
-      <button
-        onClick={(event) => onAddToCart(event, item, itemPrice)}
-      >
-        Add to cart
-      </button>
-    </div>
-  );
-}
-```
-
-The markup is ours, but we still use the library's `onClick` and `onAddToCart` handlers. That means we keep:
-
-* Constructor click and add-to-cart tracking
-* navigation to the product page
-* adding the product to the Shopify cart
-
-The library also adds its `data-cnstrc-*` tracking attributes around the card.
-
-### Other things you can override
-
-The demo only replaces the product card, but the library provides other customization points:
-
-| Override                                 | Replaces                             |
-| ---------------------------------------- | ------------------------------------ |
-| `renderOverrides.productCard.renderHtml` | Product card                         |
-| `componentOverrides`                     | Filters, groups and other components |
-| `<CioPlp>` children                      | The whole page layout                |
-
-For the full list of available overrides, see the [Storybook docs](https://constructor-io.github.io/constructorio-ui-plp/).
-
-## Project structure
-
-Most of the React-specific code lives under `src/plp-react/`:
+## How it is wired
 
 ```text
 src/plp-react/
-
 ├── cio-plp-react.build.jsx          ← custom element + React root
 ├── Plp.jsx                          ← <CioPlp> + Shopify configuration
-├── shopify-url-helpers.js           ← keeps Shopify URLs working
-├── overrides/CustomProductCard.jsx  ← custom product card
-└── cio-plp-react.build.css          ← theme and card styles
+├── overrides/CustomProductCard.jsx  ← our own product card (React)
+└── cio-plp-react.build.css
+
+src/plp-shared/                      ← shared with the bundled version
+├── shopify.js                       ← product links, add to cart, prices
+└── cio-plp-theme.css                ← card styles, checkbox fix
 
                  npm run build
-
                        │
                        ▼
-
 assets/
-
 ├── cio-plp-react.min.js
 └── cio-plp-react.min.css
-
                        │
                        ▼
-
 blocks/cio-plp-react.liquid
 sections/cio-plp-react.liquid
 templates/collection.cio-plp-react.json
 templates/search.cio-plp-react.json
 ```
 
-Liquid renders a custom element:
+### From Liquid to React
 
-```html
-<cio-plp-react>
+1. **Liquid renders the custom element.**
+   The block outputs a `<cio-plp-react>` element with an empty `<div>` and the block settings as JSON.
+
+2. **The custom element creates a React root.**
+   It reads the settings and mounts React into the `<div>`:
+
+   ```jsx
+   this.root = createRoot(target);
+   this.root.render(<Plp settings={settings} />);
+   ```
+
+3. **`Plp.jsx` renders the Constructor component.**
+   It's a normal React component that renders `<CioPlp>` with our Shopify settings. This is the part a merchant could take as a starting point for their own React app.
+
+4. **The React root is cleaned up when the element is removed.**
+   Shopify's theme editor can remove and recreate sections while editing. When that happens, `disconnectedCallback` calls `root.unmount()`.
+
+### Making it work with Shopify
+
+The library has Shopify support through `useShopifyDefaults`, but we adjust two things. Both live in `src/plp-shared/shopify.js`, shared with the bundled version.
+
+**Keep product links on the current domain.**
+The catalog stores product URLs with the store's `myshopify.com` domain, which would send shoppers away when the theme runs locally or on a custom domain. `itemFieldGetters.getItemUrl` keeps only the path, for example `/products/berri-canvas-slip-on-black`.
+
+**Add to cart with the Shopify variant ID.**
+Shopify's `/cart/add.js` needs a **variant ID**. The library's Shopify default uses the item's `__shopify_id`, and falls back to the product handle when that field is missing, which Shopify rejects. Our catalog has no `__shopify_id`, so `onAddToCart` sends the item's `variationId` instead.
+
+After adding, it fires the same `CartLinesUpdateEvent` Horizon's own "Add to cart" uses (from `@shopify/events`). Horizon's cart drawer and cart icon listen for it and refresh themselves.
+
+## Overriding components
+
+This is the main reason to use the React version: you can **replace parts of the UI with your own React components** and keep everything else from the library. We override one part, **the product card**, to show that it's possible.
+
+### Example: our own product card
+
+`src/plp-react/overrides/CustomProductCard.jsx` is a card with image, title, price and an "Add to cart" button.
+
+It has a **purple border**, so it's easy to tell apart from the library's default card and from the bundled version's card, which is teal.
+
+We pass it through `renderOverrides`:
+
+```jsx
+<CioPlp
+  apiKey={settings.apiKey}
+  renderOverrides={{ productCard: { renderHtml: CustomProductCard } }}
+/>
 ```
 
-The element receives the block settings as JSON, creates a React root and renders `Plp.jsx`.
+The library calls our component with the same props its own card uses:
 
-When the theme editor removes the section, the React app is unmounted as well.
+```jsx
+export default function CustomProductCard({ item, productInfo, formatPrice, onClick, onAddToCart }) {
+  const { itemName, itemPrice, itemImageUrl, itemUrl } = productInfo;
+
+  return (
+    <div className="cio-custom-card">
+      <a href={itemUrl} onClick={(event) => onClick(event, item)}>…</a>
+      <button onClick={(event) => onAddToCart(event, item, itemPrice)}>Add to cart</button>
+    </div>
+  );
+}
+```
+
+The markup is ours, but because we call the library's `onClick` and `onAddToCart`, we keep:
+
+* Constructor's click and add-to-cart tracking;
+* navigating to the product page;
+* adding the item to the Shopify cart.
+
+The library also puts its `data-cnstrc-*` tracking attributes on the element around our card.
+
+### Other parts you can override
+
+We only override the card. The same idea works for other parts:
+
+| Override                                 | Replaces                                                          |
+| ---------------------------------------- | ----------------------------------------------------------------- |
+| `renderOverrides.productCard.renderHtml` | The product card (what we use)                                    |
+| `componentOverrides`                     | Filters, groups and other components                              |
+| `<CioPlp>` children                      | The whole page layout (use hooks such as `useCioPlp` for the data) |
+
+See the [Storybook docs](https://constructor-io.github.io/constructorio-ui-plp/) for the full list.
+
+## Approach B vs. Approach C
+
+### Bundle size
+
+The numbers below are from the production files in `/assets`. The gzip and Brotli numbers matter most for page speed, because Shopify's CDN compresses files before sending them.
+
+| Approach              |   JS (raw) |  JS (gzip) | JS (Brotli) | CSS (gzip) |
+| --------------------- | ---------: | ---------: | ----------: | ---------: |
+| B. UI library         |     379 KB |     104 KB |       89 KB |     0.5 KB |
+| **C. React**          | **443 KB** | **130 KB** |  **111 KB** | **9.7 KB** |
+
+The React version is about 25% larger than the bundled one. We compile React, the PLP library, its UI components and Constructor's JavaScript client ourselves, while the bundled build was pre-optimized by Constructor. Our CSS file is also bigger, because it includes the library's starter CSS instead of the library injecting it at runtime.
+
+If the storefront already loads React for other features, React could be shared with the PLP instead of loaded twice.
+
+Approach A (the Connect app) isn't in the table because its JavaScript isn't in our `/assets`: the app loads the library from Constructor's CDN.
+
+The file is only loaded on pages that have the PLP block.
+
+### React vs. bundled
+
+|                                   | B. Bundled                         | C. React                                  |
+| --------------------------------- | ---------------------------------- | ----------------------------------------- |
+| How it starts                     | `CioPlp({ selector, ...props })`   | `<CioPlp {...props} />` in our React root |
+| React                             | Inside the library                 | From our `package.json`                   |
+| Card override                     | DOM element                        | React component                           |
+| Use it with our own React code    | No                                 | Yes: wrap it, add components, use hooks   |
+| Library CSS                       | Injected by the library at runtime | Imported and built into our CSS file      |
+| Clean-up when removed             | Not supported                      | `root.unmount()`                          |
+| JS size (gzip)                    | ~104 KB                            | ~130 KB                                   |
+
+## React build setup
+
+The PLP reuses the React setup from the [autocomplete React demo](./autocomplete-react.md#react-build-setup): `react`, `react-dom`, JSX in Babel, and `.build.jsx` entries in webpack. The PLP adds one more peer dependency:
+
+| Package                                    | Why                                          |
+| ------------------------------------------ | -------------------------------------------- |
+| `@constructor-io/constructorio-ui-plp`     | The PLP library itself.                      |
+| `@constructor-io/constructorio-ui-components` | UI components the PLP library is built on. |
 
 ## Styling
 
-The library's starter CSS is imported from `cio-plp-react.build.jsx`. After the build, it becomes:
+* The library's starter CSS (`styles.css`, scoped to `.cio-plp`) is imported in `cio-plp-react.build.jsx`, and webpack puts it in `assets/cio-plp-react.min.css`.
+* `src/plp-shared/cio-plp-theme.css` (shared with the bundled version) uses the theme's font and text color, and styles the custom card.
+* **Hidden checkboxes:** Horizon styles every `<input type="checkbox">` on the page. The library hides the real checkbox and draws its own, but Horizon's style made both show up, so every filter had two boxes. The shared CSS hides the real one again.
 
-```text
-assets/cio-plp-react.min.css
-```
+## Good to know
 
-Our CSS mainly does two things:
+* **Product names come from the catalog.** The demo shows variant titles such as `Black / 11`, because that's what the catalog sync sends to Constructor. The fix is in the catalog, not in the theme.
+* **Collection handles must match Constructor group IDs.** `/collections/shoes` works because the catalog has a `shoes` group.
 
-* uses the theme's font and text color
-* styles the custom product card
-
-### One Horizon-specific detail
-
-Horizon applies its checkbox styles to every `<input type="checkbox">` on the page.
-
-The PLP library hides the real checkbox and draws its own UI. Horizon's styles were causing both to appear, so we explicitly hide the underlying checkbox again.
-
-## Bundle size
-
-| File                    |    Raw |   Gzip |
-| ----------------------- | -----: | -----: |
-| `cio-plp-react.min.js`  | 444 KB | 130 KB |
-| `cio-plp-react.min.css` |  52 KB |  10 KB |
-
-The JavaScript bundle includes React, the PLP library, its UI components and Constructor's JavaScript client.
-
-The bundle is only loaded on pages that use the PLP block.
-
-## A couple of things to keep in mind
-
-**Product names come from the catalog.**
-
-For example, the demo may show variant titles such as `Black / 11`. That's what the catalog sync sends to Constructor, so changing the theme won't fix it. The catalog data needs to be changed instead.
-
-**Collection handles must match Constructor group IDs.**
-
-For example:
-
-```text
-/collections/shoes
-```
-
-works because the Constructor catalog contains a `shoes` group.
-
-## Updating the PLP library
-
-To update the PLP packages:
+## Updating the library
 
 ```sh
-npm install @constructor-io/constructorio-ui-plp@latest \
-  @constructor-io/constructorio-ui-components@latest
-
+npm install @constructor-io/constructorio-ui-plp@latest @constructor-io/constructorio-ui-components@latest
 npm run build
 ```
 
-You can check the current peer dependencies with:
+The library may change its peer dependencies in a new version. You can check them with:
 
 ```sh
 npm view @constructor-io/constructorio-ui-plp peerDependencies
 ```
 
-After updating, commit:
+If necessary, update `react` or `react-dom` as well. Then commit:
 
 * `package.json`
 * `package-lock.json`
-* the rebuilt `assets/cio-plp-react.min.*` files
+* `assets/cio-plp-react.min.js`
+* `assets/cio-plp-react.min.css`

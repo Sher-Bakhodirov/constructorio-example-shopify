@@ -1,0 +1,75 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "search": {
+      "type": "search-header",
+      "blocks": {
+        "heading": {
+          "type": "_heading",
+          "static": true,
+          "settings": {
+            "type_preset": "h2",
+            "font": "var(--font-body--family)",
+            "font_size": "",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text": "",
+            "read_only": true,
+            "alignment": "left",
+            "show_alignment": true,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "search": {
+          "type": "_search-input",
+          "static": true,
+          "settings": {
+            "width": "custom",
+            "custom_width": 50
+          },
+          "blocks": {}
+        }
+      },
+      "settings": {
+        "alignment": "flex-start",
+        "padding-block-start": 40,
+        "padding-block-end": 0
+      }
+    },
+    "plp": {
+      "type": "cio-plp-ui",
+      "blocks": {
+        "plp": {
+          "type": "cio-plp-ui",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "plp"
+      ],
+      "settings": {
+        "section_width": "page-width",
+        "padding-block-start": 24,
+        "padding-block-end": 48
+      }
+    }
+  },
+  "order": [
+    "search",
+    "plp"
+  ]
+}
