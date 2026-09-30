@@ -138,5 +138,6 @@ import x from 'some-package';
 | `src/autocomplete-react/` | The same UI library used as React components. See [autocomplete-react.md](./autocomplete-react.md). |
 | `src/autocomplete-custom/` | Custom autocomplete UI on Constructor's JS client. See [autocomplete-custom.md](./autocomplete-custom.md). |
 | `src/autocomplete-shared/` | Helpers and theme CSS shared by the autocomplete demos. |
+| `src/plp-react/` | Constructor's PLP UI (collection and search pages) in React. See [plp-react.md](./plp-react.md). |
 
 Approach A (the Constructor Connect app) doesn't use the build at all: the app loads its code from Constructor's CDN. See [autocomplete-connect-app.md](./autocomplete-connect-app.md).

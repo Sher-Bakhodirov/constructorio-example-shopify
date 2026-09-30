@@ -1,0 +1,82 @@
+/*
+ * Constructor PLP (React) styles.
+ * The library's starter CSS (`styles.css`, scoped to `.cio-plp`) is imported in the .build.jsx
+ * file and ends up in the same assets/cio-plp-react.min.css output. These rules layer the
+ * theme's fonts and colors on top.
+ */
+
+cio-plp-react {
+  display: block;
+  width: 100%;
+}
+
+.cio-plp-react__notice {
+  padding: 16px;
+  border: 1px dashed rgb(var(--color-foreground-rgb) / 40%);
+  border-radius: var(--style-border-radius-inputs, 4px);
+  font-size: 14px;
+}
+
+cio-plp-react .cio-plp {
+  font-family: inherit;
+  color: var(--color-foreground);
+}
+
+/* ---------- Custom product card (overrides/CustomProductCard.jsx) ---------- */
+
+/* A distinct border color, so the overridden card is easy to spot in the demo. */
+.cio-custom-card {
+  --cio-custom-card-accent: #6d28d9;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 8px;
+  border: 2px solid var(--cio-custom-card-accent);
+  border-radius: var(--style-border-radius-inputs, 4px);
+}
+
+.cio-custom-card__link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cio-custom-card__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--product-corner-radius, 4px);
+}
+
+.cio-custom-card__title {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.cio-custom-card__price {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cio-custom-card__add {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--style-border-radius-buttons-primary, 4px);
+  background-color: var(--cio-custom-card-accent);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Horizon styles every checkbox; the library draws its own box (`.cio-checkbox`), so hide the real one. */
+cio-plp-react .cio-plp .cio-filter-option-input {
+  display: none;
+}

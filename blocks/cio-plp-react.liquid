@@ -1,0 +1,74 @@
+{% comment %}
+  Constructor PLP UI (React): Constructor-powered product listing for collection (browse) and search pages.
+  Source: src/plp-react/ -> assets/cio-plp-react.min.js / .min.css
+  Docs: docs/plp-react.md
+{% endcomment %}
+
+{% liquid
+  assign api_key = block.settings.api_key | default: settings.cio_api_key | strip
+%}
+
+{{ 'cio-plp-react.min.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'cio-plp-react.min.js' | asset_url }}"
+  defer
+></script>
+
+<cio-plp-react {{ block.shopify_attributes }}>
+  {% if api_key != blank %}
+    <div data-cio-target></div>
+
+    <script type="application/json" data-cio-settings>
+      {
+        "apiKey": {{ api_key | json }},
+        "resultsPerPage": {{ block.settings.results_per_page | json }},
+        "customProductCard": {{ block.settings.custom_product_card | json }}
+      }
+    </script>
+  {% elsif request.design_mode %}
+    <p class="cio-plp-react__notice">
+      Constructor PLP: add an API key in this block, or in Theme settings &rarr; Constructor.
+    </p>
+  {% endif %}
+</cio-plp-react>
+
+{% schema %}
+{
+  "name": "CIO PLP React",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Constructor's PLP UI library (React). Shows the collection or search results for the current URL: /collections/<handle> or /search?q=…"
+    },
+    {
+      "type": "text",
+      "id": "api_key",
+      "label": "API key",
+      "info": "Leave blank to use the key from Theme settings → Constructor."
+    },
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "Products per page",
+      "min": 12,
+      "max": 48,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "checkbox",
+      "id": "custom_product_card",
+      "label": "Use custom product card",
+      "info": "Shows the component override: our own product card instead of the library's.",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "CIO PLP React",
+      "category": "Constructor"
+    }
+  ]
+}
+{% endschema %}
