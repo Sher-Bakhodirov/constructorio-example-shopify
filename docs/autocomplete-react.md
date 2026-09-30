@@ -66,6 +66,7 @@ You can also put the B and C blocks on the same page if you want to compare the 
 src/autocomplete-react/
 ├── cio-autocomplete-react.build.jsx   ← custom element + React root
 ├── Autocomplete.jsx                   ← React app
+├── overrides/CustomSearchInput.jsx    ← our own search input (component override)
 └── cio-autocomplete-react.build.css
 
 src/autocomplete-shared/
@@ -103,10 +104,13 @@ The flow is:
    ```
 
 3. **`Autocomplete.jsx` renders the Constructor component.**
-   It is a normal React component and renders:
+   It is a normal React component. It renders `<CioAutocomplete>` with our own search input and the library's results dropdown (see [Overriding components](#overriding-components)):
 
    ```jsx
-   <CioAutocomplete {...options} />
+   <CioAutocomplete {...options}>
+     <CustomSearchInput />
+     <AutocompleteResults />
+   </CioAutocomplete>
    ```
 
    This is also the part a merchant could take as a starting point for their own React application.
@@ -126,6 +130,66 @@ Liquid can't render a React component directly, but it can render an HTML elemen
 * clean up the React tree when Shopify removes the element.
 
 Each autocomplete block gets its own React root, so multiple blocks can be used on the same page.
+
+## Overriding components
+
+This is the main reason to use the React version: you can **replace parts of the UI with your own components** and keep everything else from the library.
+
+With no children, `<CioAutocomplete>` renders its default search input and results dropdown. Pass children, and it renders those instead:
+
+```jsx
+<CioAutocomplete {...options}>
+  <CustomSearchInput />      {/* ours */}
+  <AutocompleteResults />    {/* the library's */}
+</CioAutocomplete>
+```
+
+### Example: our own search input
+
+`src/autocomplete-react/overrides/CustomSearchInput.jsx` replaces the library's input. Compared with the default:
+
+| | Library default | Our override |
+| --- | --- | --- |
+| Search icon | Submit button on the right | Plain icon on the left |
+| Clear | `×` icon button | "Clear" text button |
+
+The library's `<SearchInput>` takes a function as its child. It calls that function with **prop getters**, and we spread them onto our own elements:
+
+```jsx
+<SearchInput>
+  {({ getFormProps, getInputProps, getLabelProps, setQuery }) => (
+    <form {...getFormProps()}>
+      <SearchIcon />
+      <label {...getLabelProps()}>
+        <input {...getInputProps()} />
+      </label>
+      <button type="button" onClick={() => setQuery('')}>Clear</button>
+    </form>
+  )}
+</SearchInput>
+```
+
+The markup is ours, but the behavior is still the library's. Because we spread its props, we keep:
+
+* the query state and fetching results as you type;
+* keyboard navigation (arrow keys, Enter, Escape);
+* submitting a search and Shopify navigation;
+* Constructor's tracking events;
+* the ARIA attributes for screen readers.
+
+That's the rule for every override: **use the prop getters, and you keep the library's behavior.** If you skip them, you have to rebuild that behavior yourself.
+
+### Other parts you can override
+
+We only override the input, to show the idea. The same pattern works for the rest of the UI:
+
+| Component | Replaces |
+| --- | --- |
+| `<SearchInput>{(props) => …}</SearchInput>` | The form, input and buttons |
+| `<AutocompleteResults>{({ sections }) => …}</AutocompleteResults>` | The whole dropdown layout |
+| `<SectionItemsList section={…}>{({ section }) => …}</SectionItemsList>` | One section: heading, list, footer |
+| `renderItem` on a section in `sections` | One result (a product or a suggestion) |
+| `useCioAutocomplete()` | Everything: you get the data and prop getters and write all the markup |
 
 ## Adding your own React code
 
