@@ -77,6 +77,15 @@
     "variant_button_width": "equal-width-buttons",
     "cio_api_key": "key_QXcSdast8nnuNbsp",
     "content_for_index": [],
+    "blocks": {
+      "7173666988400182632": {
+        "type": "shopify://apps/constructor-connect/blocks/beacon/a956b874-8151-438f-8f0b-c7ae709947b1",
+        "disabled": false,
+        "settings": {
+          "bundle_name": "you_bundle_name_here"
+        }
+      }
+    },
     "color_palette": {
       "background": "#ffffff",
       "foreground": "#000000",
