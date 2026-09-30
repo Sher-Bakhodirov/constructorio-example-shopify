@@ -112,10 +112,18 @@
             "search_url": "/search",
             "options_json": "{}"
           }
+        },
+        "cio_app_styles": {
+          "type": "custom-liquid",
+          "name": "Constructor app styles",
+          "settings": {
+            "custom_liquid": "<style>\n  /* Constructor Connect app block: match the theme-styled autocomplete used by approaches B, C and D. */\n  .shopify-app-block:has(#cio-autocomplete-ui-container) {\n    position: relative;\n    z-index: 3;\n    width: 100%;\n  }\n\n  #cio-autocomplete-ui-container {\n    width: 100%;\n    max-width: 800px;\n    margin-inline: auto;\n  }\n\n  #cio-autocomplete-ui-container .cio-autocomplete {\n    max-width: none;\n    padding: 0;\n    font-family: inherit;\n    color: var(--color-foreground);\n  }\n\n  /* Search input */\n  #cio-autocomplete-ui-container .cio-input {\n    min-height: 0;\n    padding: 12px 72px 12px 16px;\n    border: var(--style-border-width-inputs, 1px) solid var(--color-input-border);\n    border-radius: var(--style-border-radius-inputs, 4px);\n    background-color: var(--color-input-background);\n    color: var(--color-input-text);\n    font: inherit;\n  }\n\n  #cio-autocomplete-ui-container .cio-input::placeholder {\n    color: rgb(var(--color-foreground-rgb) / 60%);\n  }\n\n  #cio-autocomplete-ui-container .cio-input:focus-visible {\n    outline: 2px solid var(--color-foreground);\n    outline-offset: 2px;\n  }\n\n  /* Search + clear buttons on the right, like the other approaches */\n  #cio-autocomplete-ui-container .cio-submit-btn,\n  #cio-autocomplete-ui-container .cio-clear-btn {\n    top: 50%;\n    bottom: auto;\n    left: auto;\n    display: flex;\n    align-items: center;\n    padding: 0;\n    color: inherit;\n    transform: translateY(-50%);\n  }\n\n  #cio-autocomplete-ui-container .cio-submit-btn {\n    right: 12px;\n  }\n\n  #cio-autocomplete-ui-container .cio-clear-btn {\n    right: 40px;\n  }\n\n  /* Dropdown floats over the product grid */\n  #cio-autocomplete-ui-container .cio-results {\n    position: absolute;\n    left: 0;\n    right: 0;\n    margin-top: 8px;\n    padding: 16px;\n    border: var(--style-border-width, 1px) solid var(--color-border);\n    border-radius: var(--style-border-radius-popover, 8px);\n    background-color: var(--color-background);\n    box-shadow: 0 8px 24px rgb(0 0 0 / 12%);\n  }\n\n  #cio-autocomplete-ui-container .cio-results:empty {\n    display: none;\n  }\n\n  #cio-autocomplete-ui-container .cio-section {\n    width: 100%;\n    max-width: none;\n    list-style: none;\n  }\n\n  #cio-autocomplete-ui-container .cio-sectionName {\n    margin: 0 0 8px;\n    color: inherit;\n    font-size: 12px;\n    font-weight: normal;\n    letter-spacing: 0.05em;\n    text-transform: uppercase;\n    opacity: 0.7;\n  }\n\n  #cio-autocomplete-ui-container .cio-section-items {\n    column-gap: 0;\n  }\n\n  /* Suggestions: a plain list instead of grey pills */\n  #cio-autocomplete-ui-container .cio-section-search-suggestions .cio-section-items {\n    display: block;\n  }\n\n  #cio-autocomplete-ui-container .cio-item-SearchSuggestions {\n    width: 100%;\n    margin: 0;\n    padding: 8px;\n    border-radius: var(--style-border-radius-inputs, 4px);\n    background: none;\n    font-size: 1rem;\n    justify-content: flex-start;\n  }\n\n  #cio-autocomplete-ui-container .cio-item[aria-selected='true'] {\n    background-color: rgb(var(--color-foreground-rgb) / 8%);\n    border-radius: var(--style-border-radius-inputs, 4px);\n  }\n\n  /* Products: 4 per row on desktop, 2 on mobile */\n  #cio-autocomplete-ui-container .Products .cio-item {\n    width: 25%;\n    min-width: 130px;\n    padding: 5px 0;\n  }\n\n  #cio-autocomplete-ui-container .cio-item img {\n    max-width: 100px;\n    max-height: 100px;\n    margin-bottom: 4px;\n    border-radius: var(--product-corner-radius, 4px);\n    object-fit: cover;\n  }\n\n  #cio-autocomplete-ui-container .cio-item p {\n    color: var(--color-foreground);\n    font-size: 1rem;\n    text-align: center;\n  }\n\n  @media screen and (max-width: 749px) {\n    #cio-autocomplete-ui-container .Products .cio-item {\n      width: 50%;\n    }\n  }\n</style>"
+          }
         }
       },
       "block_order": [
-        "constructor_connect_autocomplete_K7Gxjc"
+        "constructor_connect_autocomplete_K7Gxjc",
+        "cio_app_styles"
       ],
       "settings": {
         "content_direction": "column",
@@ -123,9 +131,9 @@
         "horizontal_alignment": "flex-start",
         "vertical_alignment": "center",
         "align_baseline": false,
-        "horizontal_alignment_flex_direction_column": "flex-start",
+        "horizontal_alignment_flex_direction_column": "center",
         "vertical_alignment_flex_direction_column": "center",
-        "gap": 12,
+        "gap": 0,
         "section_width": "page-width",
         "section_height": "",
         "section_height_custom": 50,
@@ -143,7 +151,7 @@
         "border_color": "",
         "border_radius": 0,
         "padding-block-start": 0,
-        "padding-block-end": 0
+        "padding-block-end": 24
       }
     },
     "main": {

@@ -2,12 +2,12 @@
 
 This demo theme shows four ways to add Constructor autocomplete to Shopify:
 
-| Approach                       | What it is                                                                               | Status  |
-| ------------------------------ | ---------------------------------------------------------------------------------------- | ------- |
-| **A. Constructor Connect app** | Constructor's Shopify app with a ready-made block                                        | Planned |
-| **B. UI library**              | Constructor's npm package using its bundled build ([docs](./autocomplete-ui-library.md)) | ✅ Done  |
-| **C. React environment**       | The same npm package used as React components ([docs](./autocomplete-react.md))          | ✅ Done  |
-| **D. Custom UI (this doc)**    | Our own autocomplete built on Constructor's JavaScript client                            | ✅ Done  |
+| Approach                       | What it is                                                 | Docs                                                         |
+| ------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| **A. Constructor Connect app** | Constructor's Shopify app with a ready-made block, no code | [autocomplete-connect-app.md](./autocomplete-connect-app.md) |
+| **B. UI library**              | Constructor's npm package, bundled build                   | [autocomplete-ui-library.md](./autocomplete-ui-library.md)   |
+| **C. React environment**       | The same npm package, used as React components             | [autocomplete-react.md](./autocomplete-react.md)             |
+| **D. Custom UI**               | Our own autocomplete on Constructor's JavaScript client    | **this doc**                                                 |
 
 ## How it works
 
@@ -44,6 +44,8 @@ The gzip and Brotli numbers are more relevant for page performance because Shopi
 
 So the custom implementation is roughly **3× smaller than B and 4× smaller than C** when comparing the gzipped JavaScript.
 
+Approach A (the Connect app) isn't in the table because its JavaScript isn't in our `/assets`: the app loads Constructor's bundled UI library from Constructor's CDN, so it's in the same range as B. See [autocomplete-connect-app.md](./autocomplete-connect-app.md#size).
+
 ### What's in the bundles?
 
 |                        | B. UI library | C. React              | D. Custom UI            |
@@ -74,7 +76,7 @@ The Shopify setup is the same as B and C:
    Go to **Theme settings → Constructor**, or override it for an individual block.
 
 2. **Create a demo page**
-   Create a page and select the `page.cio-autocomplete-custom` template.
+   Create a page and select the `page.cio-autocomplete-custom` template. For a collection page with the autocomplete above the product grid, use `collection.cio-autocomplete-custom`.
 
 3. **Or add it yourself**
    In the theme editor, select **Add section → CIO Autocomplete Custom**. You can also add the block inside Horizon's generic **Section**.
@@ -152,6 +154,7 @@ assets/
 blocks/cio-autocomplete-custom.liquid
 sections/cio-autocomplete-custom.liquid
 templates/page.cio-autocomplete-custom.json
+templates/collection.cio-autocomplete-custom.json
 ```
 
 ### From Liquid to the dropdown

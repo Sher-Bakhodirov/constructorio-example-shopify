@@ -1,13 +1,13 @@
-# Autocomplete — Approach A: Constructor UI library
+# Autocomplete — Approach B: Constructor UI library
 
-This demo theme shows three ways to add Constructor autocomplete to Shopify:
+This demo theme shows four ways to add Constructor autocomplete to Shopify:
 
-| Approach                       | What it is                                                                   | Status  |
-| ------------------------------ | ---------------------------------------------------------------------------- | ------- |
-| **A. Constructor Connect app** | Constructor's Shopify app with a ready-made block                            | Planned |
-| **B. UI library (this doc)**   | Constructor's npm package, bundled using our [build setup](./build-setup.md) | ✅ Done  |
-| **C. React Environment**               | Constructor's npm package used in react environment within Shopify theme ([docs](./autocomplete-react.md)) | ✅ Done |
-| **D. Custom UI**               | Our own autocomplete built on Constructor's JavaScript client ([docs](./autocomplete-custom.md)) | ✅ Done |
+| Approach                       | What it is                                                 | Docs                                                         |
+| ------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| **A. Constructor Connect app** | Constructor's Shopify app with a ready-made block, no code | [autocomplete-connect-app.md](./autocomplete-connect-app.md) |
+| **B. UI library**              | Constructor's npm package, bundled build                   | **this doc**                                                 |
+| **C. React environment**       | The same npm package, used as React components             | [autocomplete-react.md](./autocomplete-react.md)             |
+| **D. Custom UI**               | Our own autocomplete on Constructor's JavaScript client    | [autocomplete-custom.md](./autocomplete-custom.md)           |
 
 ## How it works
 
@@ -38,6 +38,8 @@ Under **Theme template**, select:
 `page.cio-autocomplete-ui`
 
 The template already contains the autocomplete section.
+
+There's also a collection template, `collection.cio-autocomplete-ui`, with the autocomplete right above the product grid. Pick it under **Theme template** on any collection, or preview it by adding `?view=cio-autocomplete-ui` to a collection URL.
 
 ### 3. Or add the block yourself
 
@@ -118,6 +120,7 @@ assets/cio-autocomplete-ui.min.css
 blocks/cio-autocomplete-ui.liquid
 sections/cio-autocomplete-ui.liquid
 templates/page.cio-autocomplete-ui.json
+templates/collection.cio-autocomplete-ui.json
 config/settings_schema.json
 ```
 

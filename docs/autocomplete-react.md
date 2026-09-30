@@ -2,12 +2,12 @@
 
 This demo theme shows four ways to add Constructor autocomplete to Shopify:
 
-| Approach                            | What it is                                                                               | Status  |
-| ----------------------------------- | ---------------------------------------------------------------------------------------- | ------- |
-| **A. Constructor Connect app**      | Constructor's Shopify app with a ready-made block                                        | Planned |
-| **B. UI library**                   | Constructor's npm package using its bundled build ([docs](./autocomplete-ui-library.md)) | ✅ Done  |
-| **C. React environment (this doc)** | The same npm package used as React components inside the Shopify theme                   | ✅ Done  |
-| **D. Custom UI**                    | A custom autocomplete built on Constructor's JavaScript client ([docs](./autocomplete-custom.md))                           | ✅ Done |
+| Approach                       | What it is                                                 | Docs                                                         |
+| ------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------ |
+| **A. Constructor Connect app** | Constructor's Shopify app with a ready-made block, no code | [autocomplete-connect-app.md](./autocomplete-connect-app.md) |
+| **B. UI library**              | Constructor's npm package, bundled build                   | [autocomplete-ui-library.md](./autocomplete-ui-library.md)   |
+| **C. React environment**       | The same npm package, used as React components             | **this doc**                                                 |
+| **D. Custom UI**               | Our own autocomplete on Constructor's JavaScript client    | [autocomplete-custom.md](./autocomplete-custom.md)           |
 
 ## How it works
 
@@ -50,7 +50,7 @@ The Shopify setup is very similar to Approach B:
    Go to **Theme settings → Constructor**, or override it for an individual block.
 
 2. **Create a demo page**
-   Create a page and select the `page.cio-autocomplete-react` template.
+   Create a page and select the `page.cio-autocomplete-react` template. For a collection page with the autocomplete above the product grid, use `collection.cio-autocomplete-react`.
 
 3. **Or add it yourself**
    In the theme editor, select **Add section → CIO Autocomplete React**. You can also add the block inside Horizon's generic **Section**.
@@ -84,6 +84,7 @@ assets/
 blocks/cio-autocomplete-react.liquid
 sections/cio-autocomplete-react.liquid
 templates/page.cio-autocomplete-react.json
+templates/collection.cio-autocomplete-react.json
 ```
 
 ### From Liquid to React
