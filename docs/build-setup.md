@@ -136,4 +136,5 @@ import x from 'some-package';
 | `.shopifyignore`       | Prevents `/src`, `/docs`, `node_modules`, and build configuration files from being uploaded to Shopify.                    |
 | `src/autocomplete-ui/` | Example implementation of the Constructor Autocomplete UI. See [autocomplete-ui-library.md](./autocomplete-ui-library.md). |
 | `src/autocomplete-react/` | The same UI library used as React components. See [autocomplete-react.md](./autocomplete-react.md). |
+| `src/autocomplete-custom/` | Custom autocomplete UI on Constructor's JS client. See [autocomplete-custom.md](./autocomplete-custom.md). |
 | `src/autocomplete-shared/` | Helpers and theme CSS shared by the autocomplete demos. |

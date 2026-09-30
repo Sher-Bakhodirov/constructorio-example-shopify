@@ -1,0 +1,210 @@
+{% comment %}
+  Approach D: custom autocomplete UI built on Constructor's JavaScript client (no UI library, no React).
+  Source: src/autocomplete-custom/ -> assets/cio-autocomplete-custom.min.js / .min.css
+  Docs: docs/autocomplete-custom.md
+{% endcomment %}
+
+{% liquid
+  assign api_key = block.settings.api_key | default: settings.cio_api_key | strip
+  assign search_url = block.settings.search_url | default: routes.search_url
+%}
+
+{{ 'cio-autocomplete-custom.min.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'cio-autocomplete-custom.min.js' | asset_url }}"
+  defer
+></script>
+
+<cio-autocomplete-custom
+  style="--cio-max-width: {{ block.settings.max_width }}px; --cio-alignment: {{ block.settings.alignment }};"
+  {{ block.shopify_attributes }}
+>
+  {% if api_key != blank %}
+    <div
+      id="cio-autocomplete-{{ block.id }}"
+      class="cio-autocomplete-custom__target"
+      data-cio-target
+    ></div>
+
+    <script type="application/json" data-cio-settings>
+      {
+        "apiKey": {{ api_key | json }},
+        "searchUrl": {{ search_url | json }},
+        "placeholder": {{ block.settings.placeholder | json }},
+        "openOnFocus": {{ block.settings.open_on_focus | json }},
+        "numSuggestions": {{ block.settings.num_suggestions | json }},
+        "numProducts": {{ block.settings.num_products | json }},
+        "debounce": {{ block.settings.debounce | json }},
+        "displaySuggestionImages": {{ block.settings.display_suggestion_images | json }},
+        "displaySuggestionCounts": {{ block.settings.display_suggestion_counts | json }},
+        "displayShowAllResults": {{ block.settings.display_show_all_results | json }},
+        "showRecentSearches": {{ block.settings.show_recent_searches | json }},
+        "recentSearchesLabel": {{ block.settings.recent_searches_label | json }},
+        "themeStyling": {{ block.settings.theme_styling | json }}
+      }
+    </script>
+
+    {% if block.settings.advanced_options != blank %}
+      <script type="application/json" data-cio-options>
+        {{ block.settings.advanced_options }}
+      </script>
+    {% endif %}
+  {% elsif request.design_mode %}
+    <p class="cio-autocomplete-custom__notice">
+      Constructor Autocomplete: add an API key in this block, or in Theme settings &rarr; Constructor.
+    </p>
+  {% endif %}
+</cio-autocomplete-custom>
+
+{% schema %}
+{
+  "name": "CIO Autocomplete Custom",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Approach D: custom autocomplete UI built on Constructor's JavaScript client, compiled by the theme build."
+    },
+    {
+      "type": "header",
+      "content": "Connection"
+    },
+    {
+      "type": "text",
+      "id": "api_key",
+      "label": "API key",
+      "info": "Leave blank to use the key from Theme settings → Constructor."
+    },
+    {
+      "type": "text",
+      "id": "search_url",
+      "label": "Search results URL",
+      "info": "Where searches and suggestions redirect to. Leave blank for the store's /search page."
+    },
+    {
+      "type": "header",
+      "content": "Behavior"
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Placeholder",
+      "default": "Search"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_on_focus",
+      "label": "Open on focus",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "num_suggestions",
+      "label": "Search suggestions",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "num_products",
+      "label": "Products",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "debounce",
+      "label": "Debounce",
+      "info": "Wait time after typing before a request is sent.",
+      "min": 0,
+      "max": 1000,
+      "step": 50,
+      "unit": "ms",
+      "default": 250
+    },
+    {
+      "type": "checkbox",
+      "id": "display_suggestion_images",
+      "label": "Show images next to suggestions",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "display_suggestion_counts",
+      "label": "Show result counts next to suggestions",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "display_show_all_results",
+      "label": "Show \"Show all results\" button",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_recent_searches",
+      "label": "Show recent searches before typing",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "recent_searches_label",
+      "label": "Recent searches title",
+      "default": "Recent searches",
+      "visible_if": "{{ block.settings.show_recent_searches }}"
+    },
+    {
+      "type": "header",
+      "content": "Appearance"
+    },
+    {
+      "type": "checkbox",
+      "id": "theme_styling",
+      "label": "Use theme styling",
+      "info": "Off shows a neutral default look.",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "label": "Max width",
+      "min": 300,
+      "max": 1600,
+      "step": 20,
+      "unit": "px",
+      "default": 800
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        { "value": "flex-start", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Advanced"
+    },
+    {
+      "type": "textarea",
+      "id": "advanced_options",
+      "label": "Advanced options (JSON)",
+      "info": "Overrides any setting above by its JSON name, e.g. {\"numProducts\": 3}."
+    }
+  ],
+  "presets": [
+    {
+      "name": "CIO Autocomplete Custom",
+      "category": "Constructor"
+    }
+  ]
+}
+{% endschema %}

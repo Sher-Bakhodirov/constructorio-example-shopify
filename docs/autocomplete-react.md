@@ -7,7 +7,7 @@ This demo theme shows four ways to add Constructor autocomplete to Shopify:
 | **A. Constructor Connect app**      | Constructor's Shopify app with a ready-made block                                        | Planned |
 | **B. UI library**                   | Constructor's npm package using its bundled build ([docs](./autocomplete-ui-library.md)) | ✅ Done  |
 | **C. React environment (this doc)** | The same npm package used as React components inside the Shopify theme                   | ✅ Done  |
-| **D. Custom UI**                    | A custom autocomplete built on Constructor's JavaScript client                           | Planned |
+| **D. Custom UI**                    | A custom autocomplete built on Constructor's JavaScript client ([docs](./autocomplete-custom.md))                           | ✅ Done |
 
 ## How it works
 
