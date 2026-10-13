@@ -1,0 +1,108 @@
+{% comment %}
+  Approach D: custom PLP on Constructor's JavaScript client (no UI library, no React).
+  Liquid renders the frame and skeleton cards on the server; JS fills them in with Constructor results.
+  Source: src/plp-custom/ -> assets/cio-plp-custom.min.js / .min.css
+  Docs: docs/plp-custom.md
+{% endcomment %}
+
+{% liquid
+  assign api_key = block.settings.api_key | default: settings.cio_api_key | strip
+  comment
+    The collection handle is the Constructor group ID (e.g. /collections/shoes → group "shoes").
+  endcomment
+  assign group_id = block.settings.group_id | default: collection.handle
+  assign per_page = block.settings.results_per_page
+%}
+
+{{ 'cio-plp-custom.min.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'cio-plp-custom.min.js' | asset_url }}"
+  defer
+></script>
+
+<cio-plp-custom
+  loading
+  {{ block.shopify_attributes }}
+>
+  {% if api_key != blank and group_id != blank %}
+    <script type="application/json" data-cio-settings>
+      {
+        "apiKey": {{ api_key | json }},
+        "groupId": {{ group_id | json }},
+        "resultsPerPage": {{ per_page | json }}
+      }
+    </script>
+
+    <div class="cio-plp-custom__layout">
+      <aside class="cio-plp-custom__filters" data-cio-filters aria-label="Filters">
+        {% for i in (1..3) %}
+          <div class="cio-plp-custom__skeleton cio-plp-custom__skeleton--facet"></div>
+        {% endfor %}
+      </aside>
+
+      <div class="cio-plp-custom__main">
+        <div class="cio-plp-custom__toolbar">
+          {% comment %} Shopify knows the product count, so it's correct before Constructor responds. {% endcomment %}
+          <p class="cio-plp-custom__count" data-cio-count>{{ collection.products_count }} products</p>
+          <div data-cio-sort></div>
+        </div>
+
+        <div class="cio-plp-custom__grid" data-cio-grid aria-live="polite">
+          {% for i in (1..per_page) %}
+            <div class="cio-plp-custom__card" aria-hidden="true">
+              <div class="cio-plp-custom__media cio-plp-custom__skeleton"></div>
+              <div class="cio-plp-custom__skeleton cio-plp-custom__skeleton--line"></div>
+              <div class="cio-plp-custom__skeleton cio-plp-custom__skeleton--line cio-plp-custom__skeleton--short"></div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <nav class="cio-plp-custom__pagination" data-cio-pagination aria-label="Pagination"></nav>
+      </div>
+    </div>
+  {% elsif request.design_mode %}
+    <p class="cio-plp-custom__notice">
+      Constructor PLP: add an API key in this block, or in Theme settings &rarr; Constructor.
+    </p>
+  {% endif %}
+</cio-plp-custom>
+
+{% schema %}
+{
+  "name": "CIO PLP Custom",
+  "tag": null,
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Approach D: custom PLP on Constructor's JavaScript client. Liquid renders a skeleton on the server; JS fills in the results."
+    },
+    {
+      "type": "text",
+      "id": "api_key",
+      "label": "API key",
+      "info": "Leave blank to use the key from Theme settings → Constructor."
+    },
+    {
+      "type": "text",
+      "id": "group_id",
+      "label": "Constructor group ID",
+      "info": "Leave blank to use the collection's handle."
+    },
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "Products per page",
+      "min": 12,
+      "max": 48,
+      "step": 4,
+      "default": 24
+    }
+  ],
+  "presets": [
+    {
+      "name": "CIO PLP Custom",
+      "category": "Constructor"
+    }
+  ]
+}
+{% endschema %}

@@ -140,6 +140,7 @@ import x from 'some-package';
 | `src/autocomplete-shared/` | Helpers and theme CSS shared by the autocomplete demos. |
 | `src/plp-react/` | Constructor's PLP UI (collection and search pages) in React. See [plp-react.md](./plp-react.md). |
 | `src/plp-ui/` | The same PLP with the library's bundled build. See [plp-ui.md](./plp-ui.md). |
+| `src/plp-custom/` | Our own PLP on Constructor's JS client, with a server-rendered skeleton. See [plp-custom.md](./plp-custom.md). |
 | `src/plp-shared/` | Shopify helpers and CSS shared by both PLP demos. |
 
 Approach A (the Constructor Connect app) doesn't use the build at all: the app loads its code from Constructor's CDN. See [autocomplete-connect-app.md](./autocomplete-connect-app.md).

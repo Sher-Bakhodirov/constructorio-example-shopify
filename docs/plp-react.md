@@ -7,7 +7,7 @@ This demo theme shows four ways to add a Constructor-powered product listing pag
 | **A. Constructor Connect app** | Constructor's Shopify app with a ready-made PLP block | No doc yet               |
 | **B. UI library**              | Constructor's npm package, bundled build              | [plp-ui.md](./plp-ui.md) |
 | **C. React environment**       | The same npm package, used as React components        | **this doc**             |
-| **D. Custom UI**               | Our own PLP on Constructor's JavaScript client        | Not built yet            |
+| **D. Custom UI**               | Our own PLP on Constructor's JavaScript client        | [plp-custom.md](./plp-custom.md) |
 
 PLP stands for **product listing page**: the grid of products with filters, sorting and pagination that shoppers see on a collection page or on search results.
 

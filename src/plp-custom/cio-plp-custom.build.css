@@ -1,0 +1,234 @@
+/*
+ * Approach D styles. There's no library CSS: everything is here, using Horizon's variables.
+ * The skeleton markup comes from Liquid, so the layout is final before JavaScript runs.
+ */
+
+cio-plp-custom {
+  display: block;
+  width: 100%;
+  color: var(--color-foreground);
+}
+
+.cio-plp-custom__notice {
+  padding: 16px;
+  border: 1px dashed rgb(var(--color-foreground-rgb) / 40%);
+  border-radius: var(--style-border-radius-inputs, 4px);
+  font-size: 14px;
+}
+
+/* ---------- Layout ---------- */
+
+.cio-plp-custom__layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 40px;
+}
+
+.cio-plp-custom__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.cio-plp-custom__count {
+  margin: 0;
+  font-size: 14px;
+  color: rgb(var(--color-foreground-rgb) / 70%);
+}
+
+.cio-plp-custom__sort select {
+  margin-left: 8px;
+  padding: 6px 8px;
+  border: var(--style-border-width-inputs, 1px) solid var(--color-input-border, var(--color-border));
+  border-radius: var(--style-border-radius-inputs, 4px);
+  background: var(--color-input-background, transparent);
+  color: inherit;
+  font: inherit;
+}
+
+.cio-plp-custom__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 32px 16px;
+}
+
+/* ---------- Product card ---------- */
+
+.cio-plp-custom__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cio-plp-custom__link {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.cio-plp-custom__media {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--product-corner-radius, 0);
+  background: rgb(var(--color-foreground-rgb) / 4%);
+}
+
+.cio-plp-custom__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.cio-plp-custom__link:hover .cio-plp-custom__image {
+  transform: scale(1.03);
+}
+
+.cio-plp-custom__title,
+.cio-plp-custom__price {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.cio-plp-custom__price {
+  font-weight: 600;
+}
+
+.cio-plp-custom__add {
+  width: 100%;
+  min-height: 0;
+  padding-block: 10px;
+  font-size: 14px;
+}
+
+.cio-plp-custom__empty {
+  grid-column: 1 / -1;
+  padding: 40px 0;
+  text-align: center;
+}
+
+/* ---------- Filters ---------- */
+
+.cio-plp-custom__facet {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cio-plp-custom__facet summary {
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cio-plp-custom__options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  margin-top: 10px;
+  overflow-y: auto;
+}
+
+.cio-plp-custom__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cio-plp-custom__option-count {
+  margin-left: auto;
+  color: rgb(var(--color-foreground-rgb) / 50%);
+  font-size: 12px;
+}
+
+/* ---------- Pagination ---------- */
+
+.cio-plp-custom__pagination {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 40px;
+}
+
+.cio-plp-custom__page {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--style-border-radius-inputs, 4px);
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: 34px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.cio-plp-custom__page[aria-current='page'] {
+  border-color: var(--color-foreground);
+  background: var(--color-foreground);
+  color: var(--color-background);
+}
+
+/* ---------- Skeleton (server-rendered, shown until results arrive) ---------- */
+
+.cio-plp-custom__skeleton {
+  border-radius: var(--style-border-radius-inputs, 4px);
+  background: linear-gradient(
+      90deg,
+      rgb(var(--color-foreground-rgb) / 6%) 25%,
+      rgb(var(--color-foreground-rgb) / 12%) 50%,
+      rgb(var(--color-foreground-rgb) / 6%) 75%
+    )
+    0 0 / 200% 100%;
+  animation: cio-plp-shimmer 1.4s ease-in-out infinite;
+}
+
+.cio-plp-custom__skeleton--line {
+  height: 14px;
+}
+
+.cio-plp-custom__skeleton--short {
+  width: 40%;
+}
+
+.cio-plp-custom__skeleton--facet {
+  height: 20px;
+  margin: 14px 0 24px;
+}
+
+@keyframes cio-plp-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cio-plp-custom__skeleton {
+    animation: none;
+  }
+}
+
+/* Dim the toolbar while a new page or filter loads. */
+cio-plp-custom[loading] .cio-plp-custom__toolbar,
+cio-plp-custom[loading] .cio-plp-custom__pagination {
+  opacity: 0.5;
+}
+
+@media screen and (max-width: 749px) {
+  .cio-plp-custom__layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cio-plp-custom__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
