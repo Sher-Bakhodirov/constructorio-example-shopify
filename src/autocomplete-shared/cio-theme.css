@@ -4,6 +4,16 @@
  * `.cio-theme` class and these rules restyle it with Horizon's CSS variables.
  */
 
+/*
+ * Horizon gives every section's content `z-index: 1`, which traps the dropdown inside its
+ * section, so a later section (e.g. the PLP grid) paints over it. Lift the section that
+ * holds an autocomplete above the sections after it.
+ */
+.shopify-section:has(cio-autocomplete-ui, cio-autocomplete-react, cio-autocomplete-custom) {
+  z-index: 2;
+}
+
+
 .cio-autocomplete.cio-theme {
   height: auto;
   padding: 0;
