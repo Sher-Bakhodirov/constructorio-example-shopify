@@ -468,53 +468,10 @@
         "padding-block-start": 48,
         "padding-block-end": 48
       }
-    },
-    "1792325148baed69e2": {
-      "type": "_blocks",
-      "blocks": {
-        "constructor_connect_widget_mBzHWy": {
-          "type": "shopify://apps/constructor-connect/blocks/widget/01a14ee0-1d93-7526-9ca9-3128c74fd0b7",
-          "settings": {
-            "widget_id": "w_8z8c60ml"
-          }
-        }
-      },
-      "block_order": [
-        "constructor_connect_widget_mBzHWy"
-      ],
-      "settings": {
-        "content_direction": "column",
-        "vertical_on_mobile": true,
-        "horizontal_alignment": "flex-start",
-        "vertical_alignment": "center",
-        "align_baseline": false,
-        "horizontal_alignment_flex_direction_column": "flex-start",
-        "vertical_alignment_flex_direction_column": "center",
-        "gap": 12,
-        "section_width": "page-width",
-        "section_height": "",
-        "section_height_custom": 50,
-        "background_media": "none",
-        "background_color": "",
-        "video_position": "cover",
-        "background_image_position": "cover",
-        "toggle_overlay": false,
-        "overlay_color": "#00000026",
-        "overlay_style": "solid",
-        "gradient_direction": "to top",
-        "border": "none",
-        "border_width": 1,
-        "border_opacity": 100,
-        "border_color": "",
-        "border_radius": 0,
-        "padding-block-start": 0,
-        "padding-block-end": 0
-      }
     }
   },
   "order": [
     "main",
-    "product_recommendations_qggXJq",
-    "1792325148baed69e2"
+    "product_recommendations_qggXJq"
   ]
 }
