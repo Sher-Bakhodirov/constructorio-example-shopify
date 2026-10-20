@@ -279,8 +279,17 @@
         "padding-block-end": 48
       }
     },
-    "17925112759e4a4a78": {
+    "17925113463311094f": {
       "type": "_blocks",
+      "blocks": {
+        "constructor_connect_promotion_message_gL76K3": {
+          "type": "shopify://apps/constructor-connect/blocks/promotion-message/01a14ee0-1d93-7526-9ca9-3128c74fd0b7",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "constructor_connect_promotion_message_gL76K3"
+      ],
       "settings": {
         "content_direction": "column",
         "vertical_on_mobile": true,
@@ -314,6 +323,6 @@
   "order": [
     "cart-section",
     "product_list_NNFgcy",
-    "17925112759e4a4a78"
+    "17925113463311094f"
   ]
 }
