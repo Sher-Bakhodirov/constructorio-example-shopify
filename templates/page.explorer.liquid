@@ -63,6 +63,12 @@
 
   /* --- Chrome ----------------------------------------------------------------------------------- */
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 16px; flex-wrap: wrap; }
+  /* Theme-only: a link back to the store's home page before the breadcrumbs. */
+  .top-left { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .home { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; color: var(--muted); font-size: 14px; text-decoration: none; }
+  .home:hover { color: var(--ink); background: var(--panel); }
+  .home svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+  .home-sep { color: var(--faint); font-size: 14px; }
   .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
   .crumbs li { display: flex; align-items: center; gap: 4px; }
   .crumbs li + li::before { content: "›"; color: var(--faint); }
@@ -398,7 +404,11 @@
 </style>
 
 <header class="top">
-  <ol class="crumbs" id="crumbs" aria-label="Where you are"></ol>
+  <div class="top-left">
+    <a class="home" href="{% endraw %}{{ routes.root_url }}{% raw %}" aria-label="Back to the store's home page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"></path></svg>Home</a>
+    <span class="home-sep" aria-hidden="true">›</span>
+    <ol class="crumbs" id="crumbs" aria-label="Where you are"></ol>
+  </div>
   <div class="dots" id="dots" aria-hidden="true"></div>
 </header>
 
