@@ -1,0 +1,1207 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shopify Explorer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  /* Layout: one stage, six zoom levels. Each level = a short title on top, one large visual below.
+     Constructor brand: near-black ink, Constructor blue for "selected", the black → violet → coral gradient as the one flourish. */
+  :root {
+    --bg: #F0F3F7;
+    --panel: #FFFFFF;
+    --panel-2: #F4F6FA;
+    --line: #D9DDE6;
+    --ink: #010101;
+    --muted: #5C6475;
+    --faint: #A9B0BF;
+    --on-accent: #FFFFFF;
+    --blue: #0057B8;
+    --blue-soft: rgba(0, 87, 184, 0.10);
+    --violet-soft: rgba(103, 95, 166, 0.12);
+    --grad-start: #010101;
+    --grad-middle: #816AC5;
+    --grad-end: #F1886F;
+    --grad: linear-gradient(to right, var(--grad-start), var(--grad-middle), var(--grad-end));
+    --shadow: 0 12px 32px rgba(1, 1, 1, 0.07);
+    --code-kw: #675FA6;
+    --code-str: #A8472A;
+    --code-fn: #0057B8;
+    --code-com: #8A92A3;
+    --backdrop: rgba(240, 243, 247, 0.72);
+    --font: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --ease: cubic-bezier(0.7, 0, 0.2, 1);
+    color-scheme: light;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 8px; }
+
+  /* --- Chrome ----------------------------------------------------------------------------------- */
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 16px; flex-wrap: wrap; }
+  .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .crumbs li { display: flex; align-items: center; gap: 4px; }
+  .crumbs li + li::before { content: "›"; color: var(--faint); }
+  .crumbs button { padding: 4px 8px; border-radius: 6px; color: var(--muted); }
+  .crumbs button:hover { color: var(--ink); background: var(--panel); }
+  .crumbs li:last-child button { color: var(--ink); font-weight: 700; }
+  .dots { display: flex; gap: 6px; }
+  .dots span { width: 22px; height: 4px; border-radius: 2px; background: var(--line); }
+  .dots span.on { background: var(--grad); }
+  .bottom { display: flex; justify-content: space-between; gap: 16px; padding-block: 10px 14px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; background: var(--panel); }
+
+  .stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    background: radial-gradient(55% 65% at 70% 55%, var(--violet-soft), transparent 70%), var(--panel);
+    box-shadow: var(--shadow);
+  }
+  .next {
+    position: absolute; z-index: 5;
+    right: 24px; bottom: 24px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--grad); color: var(--on-accent);
+    display: grid; place-items: center;
+    box-shadow: var(--shadow);
+    transition: transform 0.25s var(--ease);
+  }
+  .next:hover { transform: scale(1.08); }
+  .next svg { width: 20px; height: 20px; }
+  .next[hidden] { display: none; }
+
+  /* --- Levels ----------------------------------------------------------------------------------- */
+  .level {
+    position: absolute; inset: 0;
+    visibility: hidden;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 24px;
+    padding: 40px 48px 48px;
+    overflow: auto;
+    will-change: transform, opacity;
+  }
+  .level.active { visibility: visible; }
+  .head { display: grid; gap: 6px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0; }
+  h2 { font-weight: 800; font-size: 40px; line-height: 1.08; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
+  .g { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { margin: 0; color: var(--muted); font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .vis { position: relative; min-height: 0; min-width: 0; display: grid; place-items: center; }
+
+  /* Pulsing ring on the element the next step zooms into. */
+  .beacon { position: relative; }
+  .beacon::after {
+    content: ""; position: absolute; inset: -6px; border-radius: inherit;
+    border: 2px solid var(--grad-middle); opacity: 0;
+    animation: ping 2.4s var(--ease) infinite; pointer-events: none;
+  }
+  @keyframes ping { 0% { opacity: 0.7; transform: scale(0.96); } 80%, 100% { opacity: 0; transform: scale(1.12); } }
+
+  /* 0 · Shopify */
+  .l0 { grid-template-rows: minmax(0, 1fr) auto; justify-items: center; text-align: center; }
+  .planet { position: relative; height: min(52vh, 440px); aspect-ratio: 1; max-width: 100%; }
+  .planet svg.orbits { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .ring { fill: none; stroke: var(--line); stroke-width: 1.5; }
+  .ring.dash { stroke-dasharray: 2 8; }
+  .orbit { transform-origin: 200px 200px; animation: spin 50s linear infinite; }
+  .orbit.rev { animation-duration: 80s; animation-direction: reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .orbit circle { fill: var(--faint); }
+  .orbit circle.c { fill: var(--grad-end); }
+  .orbit circle.v { fill: var(--grad-middle); }
+  .bag { position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; }
+  .bag svg { width: 100%; height: 100%; transition: transform 0.4s var(--ease); }
+  .bag:hover svg { transform: scale(1.06); }
+  .bag-glow { fill: var(--grad-middle); opacity: 0.3; filter: blur(24px); }
+  .bag-body { fill: url(#bagGrad); }
+  .bag-handle { fill: none; stroke: var(--ink); stroke-width: 9; stroke-linecap: round; }
+  .bag-mark { fill: var(--on-accent); font-weight: 800; font-family: var(--font); }
+  .l0 h2 { font-size: 64px; }
+  .kpis { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 10px; }
+  .kpi b { display: block; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .kpi span { font-size: 13px; color: var(--muted); }
+
+  /* 1 · Stores */
+  .field { position: absolute; inset: 0; }
+  .field canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pin {
+    position: absolute; transform: translate(-50%, -50%);
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 14px 8px 10px; border-radius: 999px;
+    background: var(--panel); box-shadow: var(--shadow), 0 0 0 1px var(--line);
+    font-size: 14px; font-weight: 700; white-space: nowrap;
+    transition: transform 0.3s var(--ease);
+  }
+  .pin:hover { transform: translate(-50%, -50%) scale(1.06); }
+  .si { width: 26px; height: 26px; border-radius: 8px; background: var(--panel-2); display: grid; place-items: center; flex: none; }
+  .si svg { width: 16px; height: 16px; fill: none; stroke: var(--ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .pin.plus .si { background: var(--grad); }
+  .pin.plus .si svg { stroke: var(--on-accent); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grad-middle); display: inline-block; }
+
+  /* 2 · Store: one theme is served, the others can be published */
+  .store { width: min(980px, 100%); display: grid; gap: 22px; }
+  .store-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--grad); display: grid; place-items: center; }
+  .avatar svg, .crowd svg { width: 22px; height: 22px; fill: none; stroke: var(--on-accent); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .store-head b { font-size: 18px; }
+  .store-head span { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .lib { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 150px 190px; align-items: center; }
+  .tcards { position: relative; display: grid; gap: 14px; padding-left: 34px; }
+  .tcards::before { content: ""; position: absolute; left: 10px; top: 40px; bottom: 40px; width: 2px; background: var(--line); }
+  .tcard { position: relative; display: flex; align-items: center; gap: 14px; padding: 12px 14px 12px 12px; border-radius: 16px; background: var(--panel); box-shadow: var(--shadow), 0 0 0 1px var(--line); transition: box-shadow 0.4s, opacity 0.4s; }
+  .tcard:not(.live) { opacity: 0.75; }
+  .tcard:not(.live):hover { opacity: 1; }
+  .tcard.live { box-shadow: var(--shadow), 0 0 0 2px var(--grad-middle); }
+  .tcard .node { position: absolute; left: -31px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: var(--panel); border: 3px solid var(--faint); transition: all 0.4s; }
+  .tcard.live .node { background: var(--grad); border-color: var(--panel); box-shadow: 0 0 0 2px var(--grad-middle); }
+  .tcard.live .node { animation: nodePing 2.4s var(--ease) infinite; }
+  @keyframes nodePing { 0% { box-shadow: 0 0 0 2px var(--grad-middle), 0 0 0 2px var(--violet-soft); } 70%, 100% { box-shadow: 0 0 0 2px var(--grad-middle), 0 0 0 14px transparent; } }
+  .tbody { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; text-align: left; border-radius: 10px; }
+  .thumb { width: 92px; flex: none; aspect-ratio: 4 / 3; border-radius: 8px; background: var(--panel-2); padding: 6px; display: grid; grid-template-rows: 4px 1fr 8px; gap: 4px; }
+  .thumb i { display: block; border-radius: 2px; background: var(--line); }
+  .thumb .hero { background: var(--hero); }
+  .tname { min-width: 0; }
+  .tname b { display: block; font-size: 16px; }
+  .tname span { font-size: 13px; color: var(--muted); }
+  .tcard.live .tname span { color: var(--ink); font-weight: 600; }
+  .publish { font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 999px; box-shadow: 0 0 0 1px var(--line); transition: background 0.25s, color 0.25s, box-shadow 0.25s; }
+  .publish:hover { background: var(--ink); color: var(--on-accent); box-shadow: none; }
+  .tcard .live-pill { display: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; padding: 6px 10px; border-radius: 999px; background: var(--ink); color: var(--on-accent); }
+  .tcard.live .live-pill { display: inline-block; }
+  .tcard.live .publish { display: none; }
+  .shoppers { grid-column: 3; display: grid; justify-items: center; gap: 10px; text-align: center; }
+  .crowd { width: 108px; aspect-ratio: 1; border-radius: 28px; background: var(--grad); display: grid; place-items: center; box-shadow: var(--shadow); }
+  .crowd svg { width: 46px; height: 46px; stroke-width: 1.5; }
+  .shoppers b { font-size: 15px; }
+  .shoppers span { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .serve { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .serve path { fill: none; stroke: url(#serveGrad); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 10; animation: flow 0.9s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset: -12; } }
+  .serve circle { fill: var(--grad-middle); }
+
+  /* 3 · Theme: folder tree + a real collection page with an inspector overlay */
+  .l3 { grid-template-rows: none; grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); align-items: center; gap: 40px; }
+  .l3 .desc { color: var(--muted); margin: 12px 0 16px; max-width: 46ch; }
+  .l3 .desc strong { color: var(--ink); }
+  .detail { background: var(--panel); box-shadow: var(--shadow), 0 0 0 1px var(--line); border-radius: 14px; padding: 14px 16px; min-height: 150px; }
+  .detail b { font-family: var(--mono); font-size: 13px; color: var(--blue); font-weight: 500; }
+  .detail p { margin: 6px 0 10px; font-size: 14px; }
+  .detail code { display: block; font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: pre-wrap; background: var(--panel-2); border-radius: 8px; padding: 8px 10px; }
+  .cta { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; padding: 10px 16px; border-radius: 10px; background: var(--grad); color: var(--on-accent); margin-top: 16px; }
+  .cta:hover { filter: brightness(1.08); }
+  .theme-vis { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 18px; align-items: start; min-width: 0; }
+  .tree { display: grid; gap: 4px; font-family: var(--mono); font-size: 13px; padding-top: 6px; }
+  .tree button { display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 10px; border-radius: 8px; color: var(--muted); transition: background 0.2s, color 0.2s; }
+  .tree button::before { content: ""; width: 14px; height: 11px; border-radius: 2px; border: 1.5px solid currentColor; opacity: 0.7; flex: none; }
+  .tree button[aria-pressed="true"] { background: var(--blue-soft); color: var(--blue); }
+  .tree button:hover { color: var(--ink); }
+  .auto { display: flex; align-items: center; gap: 8px; padding: 4px 10px 10px; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; user-select: none; }
+  .auto input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .switch { position: relative; width: 30px; height: 18px; border-radius: 999px; background: var(--line); transition: background 0.25s; flex: none; }
+  .switch::after { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--panel); box-shadow: 0 1px 2px rgba(1, 1, 1, 0.2); transition: transform 0.25s var(--ease); }
+  .auto input:checked + .switch { background: var(--grad); }
+  .auto input:checked + .switch::after { transform: translateX(12px); }
+  .auto input:focus-visible + .switch { outline: 2px solid var(--blue); outline-offset: 2px; }
+  .auto:has(input:checked) { color: var(--ink); }
+
+  .browser { position: relative; border-radius: 14px; background: var(--panel); box-shadow: var(--shadow), 0 0 0 1px var(--line); overflow: hidden; min-width: 0; }
+  .chrome { display: flex; align-items: center; gap: 12px; padding: 9px 12px; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .chrome .lights { display: flex; gap: 6px; }
+  .chrome .lights i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+  .addr { flex: 1; font-family: var(--mono); font-size: 11px; color: var(--muted); background: var(--panel); border-radius: 6px; padding: 4px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plp { color: var(--ink); font-size: 12px; }
+  .p-header { display: flex; align-items: center; gap: 18px; padding: 12px 18px; border-bottom: 1px solid var(--panel-2); }
+  .p-logo { font-weight: 800; letter-spacing: 0.14em; font-size: 13px; }
+  .p-nav { display: flex; gap: 14px; color: var(--muted); font-weight: 600; }
+  .p-search { margin-left: auto; width: 34%; display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--panel-2); color: var(--faint); }
+  .p-search svg, .p-cart svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .p-cart { color: var(--ink); display: grid; }
+  .p-main { padding: 14px 18px; display: grid; gap: 12px; }
+  .p-banner { padding: 4px 0; }
+  .p-banner h3 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; display: inline-block; }
+  .p-banner p { margin: 2px 0 0; color: var(--muted); }
+  .p-gridsec { display: grid; gap: 10px; }
+  .p-toolbar { display: flex; gap: 8px; align-items: center; color: var(--muted); }
+  .p-toolbar span { padding: 4px 10px; border-radius: 999px; box-shadow: 0 0 0 1px var(--line); font-weight: 600; color: var(--ink); }
+  .p-toolbar em { margin-left: auto; font-style: normal; }
+  .p-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .p-card { display: grid; gap: 6px; }
+  .p-img { aspect-ratio: 1 / 0.85; border-radius: 10px; background: var(--tile); display: grid; place-items: center; }
+  .p-img svg { width: 78%; height: auto; }
+  .shoe-up { fill: var(--shoe); }
+  .shoe-sole { fill: var(--panel); }
+  .shoe-line { fill: none; stroke: var(--panel); stroke-width: 2.2; stroke-linecap: round; opacity: 0.85; }
+  .p-title { font-weight: 700; }
+  .p-price { color: var(--muted); display: inline-block; justify-self: start; }
+  .p-footer { padding: 12px 18px; border-top: 1px solid var(--panel-2); color: var(--faint); display: flex; gap: 16px; }
+  .devtools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 12px; background: var(--panel-2); border-top: 1px solid var(--line); font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .devtools > b { font-weight: 500; color: var(--ink); margin-right: 4px; }
+  .devtools span { padding: 3px 8px; border-radius: 6px; background: var(--panel); }
+  .devtools .sep { margin-left: auto; background: none; padding: 0; }
+
+  .inspect { position: absolute; inset: 0; pointer-events: none; }
+  .ov { position: absolute; border: 1.5px solid var(--blue); background: var(--blue-soft); border-radius: 6px; animation: ovIn 0.35s var(--ease); }
+  .ov b { position: absolute; left: -1.5px; bottom: 100%; margin-bottom: 3px; font-family: var(--mono); font-weight: 500; font-size: 10.5px; white-space: nowrap; color: var(--on-accent); background: var(--blue); padding: 2px 7px; border-radius: 4px; }
+  .ov.below b { bottom: auto; top: 100%; margin: 3px 0 0; }
+  @keyframes ovIn { from { opacity: 0; transform: scale(0.98); } }
+
+  .swap { animation: swap 0.45s var(--ease); }
+  @keyframes swap { from { opacity: 0; transform: translateY(6px); } }
+
+  /* 4 · Build setup: src/ → webpack → assets/ → theme file */
+  .build { width: min(1340px, 100%); display: grid; gap: 26px; }
+  .flow { position: relative; display: grid; align-items: start; grid-template-rows: auto 1fr; grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr) 30px minmax(0, 1fr) 30px minmax(0, 1fr) 30px minmax(0, 1.35fr); }
+  /* Same rows as the theme page's folder tree, plus the dev-only files. */
+  #bRepo { grid-row: 1 / span 2; }
+  .flow-foot { grid-column: 3 / -1; grid-row: 2; display: grid; gap: 22px; align-content: start; padding-top: 34px; }
+  .repo { display: grid; gap: 4px; font-family: var(--mono); font-size: 13px; }
+  .repo-label { font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 8px 0 2px; padding-inline: 10px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .trow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.4s, background 0.4s; }
+  .trow::before { content: ""; width: 14px; height: 11px; border-radius: 2px; border: 1.5px solid currentColor; opacity: 0.7; flex: none; }
+  .repo-list { display: grid; gap: 4px; }
+  .trow.isfile::before { width: 10px; height: 13px; margin-inline: 2px; }
+  .ignoring .ign .trow { color: var(--faint); text-decoration: line-through; text-decoration-color: var(--faint); }
+  .ignoring .ign .trow.src-row { text-decoration: none; color: var(--blue); background: var(--blue-soft); }
+  .ign-badge { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 999px; background: var(--panel-2); color: var(--muted); opacity: 0; transition: opacity 0.4s; }
+  .ignoring .ign-badge { opacity: 1; }
+  .arrow { align-self: start; margin-top: 30px; height: 2px; margin-inline: 4px; background: var(--line); position: relative; }
+  .arrow::after { content: ""; position: absolute; right: -2px; top: -5px; border: 6px solid transparent; border-left: 8px solid var(--line); border-right: 0; }
+  .fcard { background: var(--panel); border-radius: 16px; box-shadow: var(--shadow), 0 0 0 1px var(--line); padding: 14px; display: grid; gap: 8px; align-content: start; transition: box-shadow 0.35s; min-width: 0; }
+  .fcard.on { box-shadow: var(--shadow), 0 0 0 2px var(--blue); }
+  .fhead { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--ink); padding-bottom: 8px; border-bottom: 1px solid var(--panel-2); }
+  .fhead svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .fhead small { margin-left: auto; font-size: 10px; color: var(--muted); letter-spacing: 0.06em; }
+  .file { font-family: var(--mono); font-size: 12px; padding: 7px 10px; border-radius: 8px; background: var(--panel-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: background 0.35s, color 0.35s, opacity 0.35s, transform 0.35s var(--ease); }
+  .file.dim { color: var(--faint); background: none; box-shadow: inset 0 0 0 1px var(--panel-2); }
+  .file.hl { background: var(--blue-soft); color: var(--blue); }
+  .file.out { opacity: 0.3; transform: scale(0.96); }
+  .file.out.show { opacity: 1; transform: none; background: var(--grad); color: var(--on-accent); }
+  .tstep { font-size: 13px; font-weight: 600; padding: 8px 10px; border-radius: 8px; background: var(--panel-2); color: var(--muted); transition: background 0.3s, color 0.3s; }
+  .tstep small { display: block; font-weight: 500; font-size: 11px; opacity: 0.8; }
+  .tstep.on { background: var(--ink); color: var(--on-accent); }
+  .code pre { margin: 0; font-family: var(--mono); font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+  .ln { display: block; padding: 3px 6px; border-radius: 6px; transition: background 0.35s, color 0.35s; }
+  .ln.dim { color: var(--faint); }
+  .ln.hl { background: var(--blue-soft); color: var(--blue); }
+  .bpacket { position: absolute; left: 0; top: 0; z-index: 2; width: 14px; height: 14px; border-radius: 50%; background: var(--grad); box-shadow: 0 0 0 6px var(--violet-soft); pointer-events: none; opacity: 0; }
+  .track { display: grid; gap: 12px; justify-items: center; }
+  .ticks { display: flex; align-items: center; }
+  .ticks button { width: 12px; height: 12px; border-radius: 50%; background: var(--line); transition: background 0.3s, transform 0.3s; }
+  .ticks button.done { background: var(--ink); }
+  .ticks button.on { background: var(--grad-middle); transform: scale(1.35); }
+  .ticks span { width: 56px; height: 2px; background: var(--line); transition: background 0.3s; }
+  .ticks span.done { background: var(--ink); }
+  .step-label { font-size: 18px; font-weight: 600; min-height: 28px; text-align: center; }
+  .replay { font-size: 13px; color: var(--muted); padding: 4px 10px; border-radius: 6px; }
+  .replay:hover { color: var(--ink); background: var(--panel-2); }
+  .cmds { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .cmds code { font-family: var(--mono); font-size: 12px; color: var(--ink); background: var(--panel-2); padding: 3px 8px; border-radius: 6px; margin-right: 6px; }
+  .lede code { font-family: var(--mono); font-size: 14px; color: var(--ink); background: var(--panel-2); padding: 1px 6px; border-radius: 5px; }
+
+  /* Code viewer: opens over the stage from the clicked file */
+  .file[data-open], .fhead[data-open] { cursor: pointer; position: relative; }
+  .file[data-open]:hover, .file[data-open]:focus-visible { box-shadow: inset 0 0 0 1.5px var(--blue); }
+  .fhead[data-open]:hover { color: var(--blue); }
+  .open-hint { font-family: var(--font); font-size: 11px; font-weight: 700; color: var(--blue); display: flex; align-items: center; gap: 4px; }
+  .ed-wrap { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center; background: var(--backdrop); backdrop-filter: blur(4px); }
+  .ed-wrap[hidden] { display: none; }
+  .editor { width: min(1120px, 94%); height: min(640px, 90%); background: var(--panel); border-radius: 16px; box-shadow: 0 30px 80px rgba(1, 1, 1, 0.16), 0 0 0 1px var(--line); display: grid; grid-template-columns: 250px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
+  .ed-top { grid-column: 1 / -1; display: flex; align-items: center; gap: 4px; padding: 8px 10px 0; background: var(--panel-2); border-bottom: 1px solid var(--line); }
+  .ed-top .lights { display: flex; gap: 6px; margin: 0 12px 8px 4px; }
+  .ed-top .lights i { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .tab { font-family: var(--mono); font-size: 12px; padding: 8px 14px; border-radius: 8px 8px 0 0; color: var(--muted); }
+  .tab[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 -2px 0 var(--grad-middle) inset; }
+  .ed-flag { margin: 0 0 8px auto; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--panel); color: var(--muted); box-shadow: 0 0 0 1px var(--line); }
+  .ed-flag[hidden] { display: none; }
+  .ed-flag:not([hidden]) + .ed-close { margin-left: 8px; }
+  .ed-close { margin: 0 4px 8px auto; width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: var(--muted); }
+  .ed-close:hover { background: var(--panel); color: var(--ink); }
+  .ed-close svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+  .ed-side { border-right: 1px solid var(--line); padding: 14px 10px; overflow: auto; font-family: var(--mono); font-size: 12.5px; display: grid; gap: 2px; align-content: start; }
+  .ed-side .sec { font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 10px 8px 4px; }
+  .ex { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; transition: background 0.3s, color 0.3s; }
+  .ex[data-file] { color: var(--ink); }
+  .ex[data-file]:hover { background: var(--panel-2); }
+  .ex.on { background: var(--blue-soft); color: var(--blue); }
+  .ex.lit { color: var(--ink); background: var(--violet-soft); }
+  .ex .npm { margin-left: auto; font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--ink); color: var(--on-accent); }
+  .ed-code { overflow: auto; padding: 14px 0 24px; font-family: var(--mono); font-size: 13px; line-height: 1.65; }
+  .cl { display: grid; grid-template-columns: 52px minmax(0, 1fr); padding-right: 20px; border-left: 3px solid transparent; }
+  .cl .n { text-align: right; padding-right: 16px; color: var(--faint); user-select: none; }
+  .cl .c { white-space: pre-wrap; word-break: break-word; }
+  .cl.hl { background: var(--blue-soft); border-left-color: var(--blue); }
+  .note { display: inline-block; margin-left: 12px; font-family: var(--font); font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--blue); color: var(--on-accent); vertical-align: 1px; white-space: nowrap; }
+  .ed-code.min .cl .c { word-break: break-all; color: var(--muted); font-size: 12px; line-height: 1.7; }
+  .min-banner { display: flex; gap: 10px; flex-wrap: wrap; padding: 0 20px 14px 55px; }
+  .min-banner span { font-family: var(--font); font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+  .min-banner b { color: var(--ink); margin-right: 4px; }
+  .min-banner span:last-child { background: var(--grad); color: var(--on-accent); }
+  .min-banner span:last-child b { color: var(--on-accent); }
+  .min-foot { padding: 14px 20px 0 55px; font-family: var(--font); font-size: 13px; color: var(--muted); }
+  .tab { white-space: nowrap; }
+  .tk-com { color: var(--code-com); font-style: italic; }
+  .tk-kw { color: var(--code-kw); font-weight: 500; }
+  .tk-str { color: var(--code-str); }
+  .tk-fn { color: var(--code-fn); }
+  .tk-tag { color: var(--code-kw); }
+
+  @media (max-width: 900px) {
+    .level { padding: 24px 20px 88px; }
+    h2 { font-size: 30px; }
+    .l0 h2 { font-size: 44px; }
+    .theme-vis, .lib, .flow { grid-template-columns: minmax(0, 1fr); }
+    .editor { grid-template-columns: minmax(0, 1fr); }
+    #edTabs { overflow-x: auto; }
+    .ed-side { display: none; }
+    .flow { gap: 0; }
+    .arrow { width: 2px; height: 22px; justify-self: center; margin: 4px 0; }
+    #bRepo, .flow-foot { grid-row: auto; grid-column: auto; }
+    .arrow::after { right: auto; left: -5px; top: auto; bottom: -2px; border: 6px solid transparent; border-top: 8px solid var(--line); border-bottom: 0; }
+    .tree { grid-template-columns: repeat(4, auto); }
+    .p-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lib { gap: 20px; }
+    .shoppers { grid-column: 1; }
+    .serve { display: none; }
+    .l3 { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .orbit, .beacon::after, .swap, .serve path, .tcard.live .node, .ov { animation: none; }
+    .ed-wrap { backdrop-filter: none; }
+  }
+</style>
+
+<header class="top">
+  <ol class="crumbs" id="crumbs" aria-label="Where you are"></ol>
+  <div class="dots" id="dots" aria-hidden="true"></div>
+</header>
+
+<main class="stage" id="stage">
+
+  <!-- 0 · Shopify -->
+  <section class="level l0" data-id="shopify" aria-label="Shopify">
+    <div class="planet">
+      <svg class="orbits" viewBox="0 0 400 400" aria-hidden="true">
+        <circle class="ring" cx="200" cy="200" r="196"></circle>
+        <circle class="ring dash" cx="200" cy="200" r="146"></circle>
+        <g class="orbit"><circle cx="200" cy="4" r="4"></circle><circle class="c" cx="396" cy="200" r="5"></circle><circle cx="62" cy="340" r="3"></circle></g>
+        <g class="orbit rev"><circle class="v" cx="200" cy="54" r="4"></circle><circle cx="74" cy="126" r="3"></circle><circle class="c" cx="326" cy="274" r="3"></circle></g>
+      </svg>
+      <button class="bag beacon" data-go data-default aria-label="Zoom into Shopify's stores">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <defs><linearGradient id="bagGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--grad-start)"></stop><stop offset="0.55" style="stop-color:var(--grad-middle)"></stop><stop offset="1" style="stop-color:var(--grad-end)"></stop></linearGradient></defs>
+          <circle class="bag-glow" cx="100" cy="115" r="70"></circle>
+          <path class="bag-handle" d="M72 70 V58 a28 28 0 0 1 56 0 V70"></path>
+          <path class="bag-body" d="M44 66 H156 L166 168 Q167 180 155 180 H45 Q33 180 34 168 Z"></path>
+          <text class="bag-mark" x="100" y="148" text-anchor="middle" font-size="64">S</text>
+        </svg>
+      </button>
+    </div>
+    <div class="head">
+      <h2>Shopify</h2>
+      <div class="kpis">
+        <div class="kpi"><b class="g count" data-to="378" data-prefix="$" data-suffix="B">$378B</b><span>GMV in 2025</span></div>
+        <div class="kpi"><b class="count" data-to="175" data-suffix="+">175+</b><span>countries</span></div>
+        <div class="kpi"><b>&gt;14%</b><span>of US ecommerce</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 · Stores -->
+  <section class="level" data-id="stores" aria-label="Stores">
+    <div class="head">
+      <p class="eyebrow">Stores</p>
+      <h2><span class="g count" data-to="3.19" data-dec="2" data-suffix="M">3.19M</span> stores</h2>
+      <p class="lede"><span class="dot"></span><span class="count" data-to="81.8" data-dec="1" data-suffix="k">81.8k</span> on Shopify Plus</p>
+    </div>
+    <div class="vis">
+      <div class="field">
+        <canvas id="dotsCanvas" aria-hidden="true"></canvas>
+        <button class="pin plus beacon" style="left:56%;top:38%" data-go data-default data-store="Fieldhouse Shoes"><span class="si"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"></path><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"></path><path d="M5.5 11.5V20h13v-8.5"></path><path d="M10 20v-4.5h4V20"></path></svg></span>Fieldhouse Shoes</button>
+        <button class="pin" style="left:28%;top:66%" data-go data-store="Lumen Skin"><span class="si"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"></path><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"></path><path d="M5.5 11.5V20h13v-8.5"></path><path d="M10 20v-4.5h4V20"></path></svg></span>Lumen Skin</button>
+        <button class="pin plus" style="left:78%;top:70%" data-go data-store="Northbound Outdoor"><span class="si"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"></path><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"></path><path d="M5.5 11.5V20h13v-8.5"></path><path d="M10 20v-4.5h4V20"></path></svg></span>Northbound Outdoor</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Store -->
+  <section class="level" data-id="store" aria-label="Store">
+    <div class="head">
+      <p class="eyebrow">A store</p>
+      <h2>One theme is live. <span class="g">Any can be next.</span></h2>
+      <p class="lede">Shoppers always get the published theme. Publish another to switch.</p>
+    </div>
+    <div class="vis">
+      <div class="store">
+        <div class="store-head">
+          <div class="avatar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"></path><path d="M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0"></path><path d="M5.5 11.5V20h13v-8.5"></path><path d="M10 20v-4.5h4V20"></path></svg></div>
+          <b id="storeName">Fieldhouse Shoes</b>
+          <span id="storeDomain">fieldhouse-shoes.myshopify.com</span>
+        </div>
+        <div class="lib" id="lib">
+          <div class="tcards" id="tcards">
+            <div class="tcard live" data-name="Horizon">
+              <span class="node"></span>
+              <button class="tbody" data-go data-default data-theme="Horizon" aria-label="Open theme Horizon">
+                <span class="thumb" style="--hero: var(--grad)"><i></i><i class="hero"></i><i></i></span>
+                <span class="tname"><b>Horizon</b><span>Served to shoppers</span></span>
+              </button>
+              <span class="live-pill">LIVE</span>
+              <button class="publish">Publish</button>
+            </div>
+            <div class="tcard" data-name="Horizon · Constructor demo">
+              <span class="node"></span>
+              <button class="tbody" data-go data-theme="Horizon · Constructor demo" aria-label="Open theme Horizon · Constructor demo">
+                <span class="thumb" style="--hero: var(--violet-soft)"><i></i><i class="hero"></i><i></i></span>
+                <span class="tname"><b>Horizon · Constructor demo</b><span>Ready to publish</span></span>
+              </button>
+              <span class="live-pill">LIVE</span>
+              <button class="publish">Publish</button>
+            </div>
+            <div class="tcard" data-name="Dawn">
+              <span class="node"></span>
+              <button class="tbody" data-go data-theme="Dawn" aria-label="Open theme Dawn">
+                <span class="thumb" style="--hero: var(--line)"><i></i><i class="hero"></i><i></i></span>
+                <span class="tname"><b>Dawn</b><span>Ready to publish</span></span>
+              </button>
+              <span class="live-pill">LIVE</span>
+              <button class="publish">Publish</button>
+            </div>
+          </div>
+          <div class="shoppers" id="shoppers">
+            <div class="crowd"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"></circle><path d="M3 19.5c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"></path><circle cx="17" cy="9" r="2.4"></circle><path d="M15.5 14.2c3 .1 5.5 2 5.5 5.3"></path></svg></div>
+            <b>Shoppers</b>
+            <span id="shopDomain">fieldhouse-shoes.com</span>
+          </div>
+          <svg class="serve" id="serve" aria-hidden="true">
+            <defs><linearGradient id="serveGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" style="stop-color:var(--grad-middle)"></stop><stop offset="1" style="stop-color:var(--grad-end)"></stop></linearGradient></defs>
+            <path id="servePath" d=""></path>
+            <circle id="serveDot" r="5"></circle>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · Theme -->
+  <section class="level l3" data-id="theme" aria-label="Theme structure">
+    <div class="caption">
+      <p class="eyebrow">A theme</p>
+      <h2>Inside a theme</h2>
+      <p class="desc">A folder of <strong>Liquid</strong> templates, JSON and static files. Shopify renders it into the page shoppers see.</p>
+      <div class="detail" id="detail" aria-live="polite"></div>
+      <button class="cta" data-go id="buildCta">See our build setup →</button>
+    </div>
+    <div class="theme-vis">
+      <div class="tree" id="tree" role="group" aria-label="Theme folders">
+        <label class="auto" for="autoTour"><input type="checkbox" id="autoTour" checked><span class="switch" aria-hidden="true"></span>Auto tour</label>
+        <button data-part="layout">layout/</button>
+        <button data-part="templates">templates/</button>
+        <button data-part="sections">sections/</button>
+        <button data-part="blocks">blocks/</button>
+        <button data-part="snippets">snippets/</button>
+        <button data-part="assets">assets/</button>
+        <button data-part="config">config/</button>
+        <button data-part="locales">locales/</button>
+      </div>
+      <div class="browser" id="browser">
+        <div class="chrome"><span class="lights"><i></i><i></i><i></i></span><span class="addr" id="plpAddr">fieldhouse-shoes.com/collections/shoes</span></div>
+        <div class="plp" id="plp">
+          <header class="p-header" data-part="layout" data-file="layout/theme.liquid · header">
+            <span class="p-logo" id="plpLogo">FIELDHOUSE</span>
+            <nav class="p-nav" data-part="locales" data-file="locales/en.default.json"><span>Shop</span><span>New</span><span>Sale</span></nav>
+            <span class="p-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>Search</span>
+            <span class="p-cart"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path></svg></span>
+          </header>
+          <div class="p-main" data-part="templates" data-file="templates/collection.json" data-default>
+            <section class="p-banner" data-part="sections" data-file="sections/collection-banner.liquid">
+              <h3>Shoes</h3>
+              <p>Everyday sneakers, runners and boots.</p>
+            </section>
+            <section class="p-gridsec" data-part="sections" data-file="sections/main-collection.liquid">
+              <div class="p-toolbar"><span>Filter</span><span>Sort</span><em>24 products</em></div>
+              <div class="p-grid">
+                  <article class="p-card" data-part="blocks" data-file="blocks/product-card.liquid">
+                    <div class="p-img" style="--tile:#ECEBF6; --shoe:var(--ink)"><svg viewBox="0 0 120 64" aria-hidden="true"><path class="shoe-up" d="M9 47 C 11 33, 20 24, 34 21 L 47 18 C 53 27, 63 31, 77 33 C 93 35, 105 40, 109 47 Z"></path><path class="shoe-sole" d="M7 47 H110 Q115 47 115 52 V53 Q115 57 111 57 H11 Q6 57 6 52 V51 Q6 47 7 47 Z"></path><path class="shoe-line" d="M50 29 L 58 25 M56 33 L 64 29 M62 36 L 70 32"></path></svg></div>
+                    <div class="p-title">Trail Runner</div>
+                    <div class="p-price" data-part="snippets" data-file="snippets/price.liquid">$129</div>
+                  </article>
+                  <article class="p-card" data-part="blocks" data-file="blocks/product-card.liquid">
+                    <div class="p-img" style="--tile:#F1EEFB; --shoe:var(--grad-middle)"><svg viewBox="0 0 120 64" aria-hidden="true"><path class="shoe-up" d="M9 47 C 11 33, 20 24, 34 21 L 47 18 C 53 27, 63 31, 77 33 C 93 35, 105 40, 109 47 Z"></path><path class="shoe-sole" d="M7 47 H110 Q115 47 115 52 V53 Q115 57 111 57 H11 Q6 57 6 52 V51 Q6 47 7 47 Z"></path><path class="shoe-line" d="M50 29 L 58 25 M56 33 L 64 29 M62 36 L 70 32"></path></svg></div>
+                    <div class="p-title">Court Classic</div>
+                    <div class="p-price" data-part="snippets" data-file="snippets/price.liquid">$95</div>
+                  </article>
+                  <article class="p-card" data-part="blocks" data-file="blocks/product-card.liquid">
+                    <div class="p-img" style="--tile:#FCEFEA; --shoe:var(--grad-end)"><svg viewBox="0 0 120 64" aria-hidden="true"><path class="shoe-up" d="M9 47 C 11 33, 20 24, 34 21 L 47 18 C 53 27, 63 31, 77 33 C 93 35, 105 40, 109 47 Z"></path><path class="shoe-sole" d="M7 47 H110 Q115 47 115 52 V53 Q115 57 111 57 H11 Q6 57 6 52 V51 Q6 47 7 47 Z"></path><path class="shoe-line" d="M50 29 L 58 25 M56 33 L 64 29 M62 36 L 70 32"></path></svg></div>
+                    <div class="p-title">Daily Knit</div>
+                    <div class="p-price" data-part="snippets" data-file="snippets/price.liquid">$110</div>
+                  </article>
+                  <article class="p-card" data-part="blocks" data-file="blocks/product-card.liquid">
+                    <div class="p-img" style="--tile:#E8F0FA; --shoe:var(--blue)"><svg viewBox="0 0 120 64" aria-hidden="true"><path class="shoe-up" d="M9 47 C 11 33, 20 24, 34 21 L 47 18 C 53 27, 63 31, 77 33 C 93 35, 105 40, 109 47 Z"></path><path class="shoe-sole" d="M7 47 H110 Q115 47 115 52 V53 Q115 57 111 57 H11 Q6 57 6 52 V51 Q6 47 7 47 Z"></path><path class="shoe-line" d="M50 29 L 58 25 M56 33 L 64 29 M62 36 L 70 32"></path></svg></div>
+                    <div class="p-title">City Walker</div>
+                    <div class="p-price" data-part="snippets" data-file="snippets/price.liquid">$140</div>
+                  </article>
+              </div>
+            </section>
+          </div>
+          <footer class="p-footer" data-part="layout" data-file="layout/theme.liquid · footer"><span>© Fieldhouse Shoes</span><span>Shipping</span><span>Returns</span></footer>
+        </div>
+        <div class="devtools">
+          <b>Loaded</b>
+          <span data-part="assets" data-file="assets/">base.css</span>
+          <span data-part="assets">cart.js</span>
+          <span data-part="assets">cio-plp-ui.min.js</span>
+          <span class="sep"></span>
+          <span data-part="config" data-file="config/settings_data.json">colours · fonts · app embeds</span>
+        </div>
+        <div class="inspect" id="inspect"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · Build setup -->
+  <section class="level" data-id="build" aria-label="Our build setup">
+    <div class="head">
+      <p class="eyebrow">Our build setup</p>
+      <h2>From <span class="g">src/</span> to the storefront</h2>
+      <p class="lede">Shopify only gets the theme folders. Inside <code>src/</code>, only <code>*.build.*</code> files become assets.</p>
+    </div>
+    <div class="vis">
+      <div class="build">
+        <div class="flow" id="flow">
+          <div class="fcard" id="bRepo">
+            <div class="fhead"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"></path></svg>theme-repo/<small>PROJECT</small></div>
+            <div class="repo" id="repo">
+              <div class="repo-label">Uploaded to Shopify</div>
+              <div class="repo-list"><span class="trow">layout/</span><span class="trow">templates/</span><span class="trow">sections/</span><span class="trow">blocks/</span><span class="trow">snippets/</span><span class="trow">assets/</span><span class="trow">config/</span><span class="trow">locales/</span></div>
+              <div class="repo-label">Dev only <span class="ign-badge">.shopifyignore</span></div>
+              <div class="repo-list ign"><span class="trow src-row" id="srcRow">src/</span><span class="trow">docs/</span><span class="trow">node_modules/</span><span class="trow isfile">package.json</span><span class="trow isfile">webpack.config.js</span><span class="trow isfile">babel.config.js</span><span class="trow isfile">postcss.config.js</span></div>
+            </div>
+          </div>
+          <div class="arrow"></div>
+          <div class="fcard" id="bSrc">
+            <div class="fhead"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"></path></svg>src/plp-ui/<small class="open-hint">CLICK A FILE ↗</small></div>
+            <div class="file" data-src data-open="js" role="button" tabindex="0" aria-label="Open cio-plp-ui.build.js">cio-plp-ui.build.js</div>
+            <div class="file" data-src data-open="css" role="button" tabindex="0" aria-label="Open cio-plp-ui.build.css">cio-plp-ui.build.css</div>
+            <div class="file dim">overrides/…</div>
+            <div class="file dim">../plp-shared/shopify.js</div>
+          </div>
+          <div class="arrow"></div>
+          <div class="fcard" id="bPack">
+            <div class="fhead"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7.5 4.3v8.6L12 20.2l-7.5-4.3V7.3z"></path><path d="M12 11.6l7.5-4.3M12 11.6v8.6M12 11.6L4.5 7.3"></path></svg>webpack<small>npm run build</small></div>
+            <div class="tstep">Bundle<small>follows every import</small></div>
+            <div class="tstep">Babel<small>modern JS and JSX → plain JS</small></div>
+            <div class="tstep">Terser<small>minifies</small></div>
+            <div class="tstep">Autoprefixer<small>CSS for every browser</small></div>
+          </div>
+          <div class="arrow"></div>
+          <div class="fcard" id="bAssets">
+            <div class="fhead"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"></path></svg>assets/<small>SHOPIFY SERVES</small></div>
+            <div class="file out" id="outJs" data-open="minjs" role="button" tabindex="0" aria-label="Open cio-plp-ui.min.js">cio-plp-ui.min.js</div>
+            <div class="file out" id="outCss" data-open="mincss" role="button" tabindex="0" aria-label="Open cio-plp-ui.min.css">cio-plp-ui.min.css</div>
+            <div class="file dim">base.css</div>
+            <div class="file dim">cart.js</div>
+          </div>
+          <div class="arrow"></div>
+          <div class="fcard code" id="bTheme">
+            <div class="fhead" data-open="liquid" role="button" tabindex="0" aria-label="Open blocks/cio-plp-ui.liquid"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4.5 4.5v12a.5.5 0 0 1-.5.5H7a.5.5 0 0 1-.5-.5v-16a.5.5 0 0 1 .5-.5z"></path><path d="M14 3.5V8h4.5"></path></svg>blocks/cio-plp-ui.liquid<small>THEME FILE</small></div>
+<pre><code><span class="ln" id="lnCss">{{ 'cio-plp-ui.min.css' | asset_url | stylesheet_tag }}</span><span class="ln" id="lnJs">&lt;script src="{{ 'cio-plp-ui.min.js' | asset_url }}" defer&gt;&lt;/script&gt;</span><span class="ln dim">&lt;div id="cio-plp"&gt;&lt;/div&gt;</span><span class="ln dim">{% schema %} … {% endschema %}</span></code></pre>
+          </div>
+          <div class="flow-foot">
+          <div class="track">
+            <div class="ticks" id="bTicks"></div>
+            <div class="step-label" id="bLabel" aria-live="polite"></div>
+            <button class="replay" id="bReplay">↻ Replay</button>
+          </div>
+          <div class="cmds">
+            <span><code>npm run dev</code>rebuilds on every save</span>
+            <span><code>shopify theme dev</code>uploads the theme to the store</span>
+          </div>
+          <div class="bpacket" id="bPacket"></div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ed-wrap" id="edWrap" hidden>
+    <div class="editor" id="editor" role="dialog" aria-modal="true" aria-label="Source code">
+      <div class="ed-top">
+        <span class="lights"><i></i><i></i><i></i></span>
+        <div role="tablist" id="edTabs" style="display:flex;gap:2px">
+          <button class="tab" role="tab" data-file="js">cio-plp-ui.build.js</button>
+          <button class="tab" role="tab" data-file="css">cio-plp-ui.build.css</button>
+          <button class="tab" role="tab" data-file="liquid">cio-plp-ui.liquid</button>
+          <button class="tab" role="tab" data-file="minjs">cio-plp-ui.min.js</button>
+          <button class="tab" role="tab" data-file="mincss">cio-plp-ui.min.css</button>
+        </div>
+        <span class="ed-flag" id="edFlag">Simplified for the slide</span>
+        <button class="ed-close" id="edClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+      <nav class="ed-side" aria-label="Files">
+        <div class="sec">src</div>
+        <button class="ex" data-file="js">plp-ui/cio-plp-ui.build.js</button>
+        <button class="ex" data-file="css">plp-ui/cio-plp-ui.build.css</button>
+        <span class="ex">plp-ui/overrides/…</span>
+        <span class="ex">plp-shared/shopify.js</span>
+        <div class="sec">node_modules</div>
+        <span class="ex" id="exNpm" title="@constructor-io/constructorio-ui-plp">constructorio-ui-plp<span class="npm">npm</span></span>
+        <span class="ex">react, react-dom</span>
+        <div class="sec">blocks</div>
+        <button class="ex" data-file="liquid">cio-plp-ui.liquid</button>
+        <div class="sec">assets</div>
+        <button class="ex" data-file="minjs">cio-plp-ui.min.js</button>
+        <button class="ex" data-file="mincss">cio-plp-ui.min.css</button>
+      </nav>
+      <div class="ed-code" id="edCode" tabindex="0"></div>
+    </div>
+  </div>
+
+  <button class="next" id="next" aria-label="Zoom in">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </button>
+</main>
+
+<footer class="bottom">
+  <span id="source"></span>
+  <span><kbd>→</kbd> next &nbsp; <kbd>←</kbd> back</span>
+</footer>
+
+<script>
+  const stage = document.getElementById("stage");
+  const levels = [...document.querySelectorAll(".level")];
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const $ = (id) => document.getElementById(id);
+
+  const state = { current: 0, busy: false, origins: [], store: "Fieldhouse Shoes", theme: "Horizon" };
+
+  const SOURCES = [
+    "Shopify FY2025 and Q2 2026 results.",
+    "Store Leads, Oct 2026 (tracker estimate). One dot ≈ 1,300 stores. Store names are illustrative.",
+    "Illustrative store.",
+    "Online Store 2.0 theme structure.",
+    "From the Constructor demo theme: .shopifyignore, webpack.config.js and docs/build-setup.md.",
+  ];
+
+  /* --- Navigation ------------------------------------------------------------------------------- */
+
+  function renderChrome() {
+    const labels = ["Shopify", "Stores", state.store, state.theme, "Build setup"];
+    const crumbs = $("crumbs");
+    crumbs.innerHTML = "";
+    labels.slice(0, state.current + 1).forEach((label, i) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.textContent = label;
+      if (i === state.current) b.setAttribute("aria-current", "step");
+      b.addEventListener("click", () => go(i));
+      li.appendChild(b);
+      crumbs.appendChild(li);
+    });
+    $("dots").innerHTML = levels.map((_, i) => `<span class="${i <= state.current ? "on" : ""}"></span>`).join("");
+    $("source").textContent = SOURCES[state.current];
+    $("next").hidden = state.current === levels.length - 1;
+    try { history.replaceState(null, "", "#" + levels[state.current].dataset.id); } catch (e) {}
+  }
+
+  function pointOf(el) {
+    const s = stage.getBoundingClientRect();
+    if (!el) return { x: s.width / 2, y: s.height / 2 };
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2 - s.left, y: r.top + r.height / 2 - s.top };
+  }
+
+  function go(next, originEl) {
+    if (state.busy || next === state.current || next < 0 || next >= levels.length) return;
+    const from = levels[state.current], to = levels[next];
+    const forward = next > state.current;
+    // Forward zooms into what was clicked; back zooms out through the same point.
+    const p = forward ? pointOf(originEl) : state.origins[state.current] || pointOf(null);
+    if (forward) state.origins[next] = p;
+
+    leave(state.current);
+    state.busy = true;
+    state.current = next;
+    to.classList.add("active");
+    to.scrollTop = 0;
+    renderChrome();
+    enter(next);
+
+    const origin = `${p.x}px ${p.y}px`;
+    from.style.transformOrigin = origin;
+    to.style.transformOrigin = origin;
+    const opts = { duration: reduced ? 250 : 800, easing: "cubic-bezier(0.65, 0, 0.25, 1)", fill: "both" };
+    const big = reduced ? 1 : 2.4, small = reduced ? 1 : 0.35;
+    const out = from.animate(
+      [{ transform: "scale(1)", opacity: 1 }, { transform: `scale(${forward ? big : small})`, opacity: 0 }], opts);
+    to.animate(
+      [{ transform: `scale(${forward ? small : big})`, opacity: 0 }, { transform: "scale(1)", opacity: 1 }], opts);
+    out.onfinish = () => {
+      from.classList.remove("active");
+      from.getAnimations().forEach((a) => a.cancel());
+      to.getAnimations().forEach((a) => a.cancel());
+      state.busy = false;
+    };
+  }
+
+  function forward() {
+    const lvl = levels[state.current];
+    go(state.current + 1, lvl.querySelector("[data-default]") || lvl.querySelector("[data-go]"));
+  }
+
+  stage.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-go]");
+    if (!t || !levels[state.current].contains(t)) return;
+    if (t.dataset.store) { state.store = t.dataset.store; fillStore(); }
+    if (t.dataset.theme) state.theme = t.dataset.theme;
+    // The theme's CTA zooms out of the loaded assets strip, which is where the build output ends up.
+    go(state.current + 1, t.id === "buildCta" ? document.querySelector(".devtools") : t);
+  });
+  // The branch labels are SVG groups, so give them button keyboard behaviour.
+  stage.addEventListener("keydown", (e) => {
+    const t = e.target.closest('[role="button"][data-go]');
+    if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.stopPropagation(); t.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+  });
+
+  // The flowing line runs from whichever theme is live to the shoppers.
+  function drawServe(animate) {
+    const lib = $("lib"), live = lib.querySelector(".tcard.live");
+    if (!live) return;
+    const L = lib.getBoundingClientRect(), a = live.getBoundingClientRect();
+    const b = $("shoppers").querySelector(".crowd").getBoundingClientRect();
+    const x1 = a.right - L.left, y1 = a.top + a.height / 2 - L.top;
+    const x2 = b.left - L.left - 8, y2 = b.top + b.height / 2 - L.top;
+    const d = `M${x1} ${y1} C ${x1 + 70} ${y1}, ${x2 - 70} ${y2}, ${x2} ${y2}`;
+    const path = $("servePath");
+    path.setAttribute("d", d);
+    $("serveDot").setAttribute("cx", x2);
+    $("serveDot").setAttribute("cy", y2);
+    if (animate && !reduced) path.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, easing: "ease-out" });
+  }
+
+  $("tcards").addEventListener("click", (e) => {
+    const btn = e.target.closest(".publish");
+    if (!btn) return;
+    const card = btn.closest(".tcard");
+    $("tcards").querySelectorAll(".tcard").forEach((c) => {
+      const isLive = c === card;
+      c.classList.toggle("live", isLive);
+      c.querySelector(".tname span").textContent = isLive ? "Served to shoppers" : "Ready to publish";
+      const body = c.querySelector(".tbody");
+      body.toggleAttribute("data-default", isLive);
+    });
+    drawServe(true);
+  });
+  addEventListener("resize", () => { if (levels[state.current].dataset.id === "store") drawServe(false); });
+  $("next").addEventListener("click", forward);
+  addEventListener("keydown", (e) => {
+    if (edOpen) { if (e.key === "Escape") { e.preventDefault(); closeEditor(); } return; }
+    if (e.target.closest && e.target.closest("[data-open]") && (e.key === "Enter" || e.key === " ")) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); forward(); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp" || e.key === "Escape") { e.preventDefault(); go(state.current - 1); }
+  });
+
+  function fillStore() {
+    const slug = state.store.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    $("storeName").textContent = state.store;
+    $("storeDomain").textContent = `${slug}.myshopify.com`;
+    $("shopDomain").textContent = `${slug}.com`;
+    $("plpAddr").textContent = `${slug}.com/collections/shoes`;
+    $("plpLogo").textContent = state.store.split(" ")[0].toUpperCase();
+  }
+
+  /* --- Enter / leave ---------------------------------------------------------------------------- */
+
+  const hooks = {
+    shopify: { enter: () => countUp(levels[0]) },
+    stores: { enter: () => { countUp(levels[1]); startField(); }, leave: stopField },
+    store: { enter: () => drawServe(true) },
+    theme: { enter: startTour, leave: stopTour },
+    build: { enter: () => playBuild(0), leave: () => { stopBuild(); closeEditor(); } },
+  };
+  const enter = (i) => hooks[levels[i].dataset.id]?.enter?.();
+  const leave = (i) => hooks[levels[i].dataset.id]?.leave?.();
+
+  function countUp(root) {
+    root.querySelectorAll(".count").forEach((el) => {
+      const to = Number(el.dataset.to), dec = Number(el.dataset.dec || 0);
+      const fmt = (v) => (el.dataset.prefix || "") + v.toFixed(dec) + (el.dataset.suffix || "");
+      if (reduced) { el.textContent = fmt(to); return; }
+      const t0 = performance.now();
+      const tick = (t) => {
+        const k = Math.min(1, (t - t0) / 1400);
+        el.textContent = fmt(to * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  /* --- 1 · Store field -------------------------------------------------------------------------- */
+
+  const canvas = $("dotsCanvas");
+  const ctx = canvas.getContext("2d");
+  let seed = 11;
+  const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const gauss = () => Math.sqrt(-2 * Math.log(rand() + 1e-9)) * Math.cos(2 * Math.PI * rand());
+  // ~2,400 dots for 3.19M stores, so one dot ≈ 1,300 stores; 2.6% are Plus.
+  const clusters = [[0.3, 0.4, 0.13], [0.55, 0.32, 0.1], [0.72, 0.58, 0.12], [0.42, 0.68, 0.1], [0.84, 0.3, 0.07]];
+  const field = [];
+  for (let i = 0; i < 2400; i++) {
+    const c = clusters[Math.floor(rand() * clusters.length)];
+    const x = c[0] + gauss() * c[2], y = c[1] + gauss() * c[2] * 0.8;
+    if (x < 0.02 || x > 0.98 || y < 0.04 || y > 0.96) continue;
+    field.push({ x, y, plus: rand() < 0.026, r: 1 + rand() * 1.2, ph: rand() * 6.28 });
+  }
+  let fieldRaf = 0, fieldT0 = 0;
+
+  function sizeCanvas() {
+    const r = canvas.getBoundingClientRect(), dpr = devicePixelRatio || 1;
+    canvas.width = Math.max(1, r.width * dpr);
+    canvas.height = Math.max(1, r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function drawField(t) {
+    const r = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, r.width, r.height);
+    const faint = css("--faint"), plus = css("--grad-middle");
+    const k = reduced ? 9 : (t - fieldT0) / 1600;
+    for (const d of field) {
+      const a = Math.max(0, Math.min(1, (k - Math.hypot(d.x - 0.5, d.y - 0.5) * 0.9) / 0.25));
+      if (!a) continue;
+      ctx.globalAlpha = a * (d.plus ? 0.7 + 0.3 * Math.sin(t / 800 + d.ph) : 0.55);
+      ctx.fillStyle = d.plus ? plus : faint;
+      ctx.beginPath();
+      ctx.arc(d.x * r.width, d.y * r.height, d.plus ? d.r + 1.6 : d.r, 0, 6.283);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function startField() {
+    sizeCanvas();
+    fieldT0 = performance.now();
+    if (reduced) { drawField(fieldT0); return; }
+    const loop = (t) => { drawField(t); fieldRaf = requestAnimationFrame(loop); };
+    fieldRaf = requestAnimationFrame(loop);
+  }
+  function stopField() { cancelAnimationFrame(fieldRaf); }
+  addEventListener("resize", () => { if (levels[state.current].dataset.id === "stores") { sizeCanvas(); drawField(performance.now()); } });
+
+  /* --- 3 · Theme tour --------------------------------------------------------------------------- */
+
+  const PARTS = {
+    layout: ["layout/theme.liquid", "The frame around every page: the <head>, header and footer. The page's template is rendered into it.", "{{ content_for_header }}\n…\n{{ content_for_layout }}"],
+    templates: ["templates/collection.json", "One per page type: product, collection, search, cart. A JSON list of sections and their order. A page can use an alternate, like collection.cio-plp-ui.json.", '{ "sections": { "banner": {…}, "grid": {…} },\n  "order": ["banner", "grid"] }'],
+    sections: ["sections/*.liquid", "Reusable bands of a page. Each has a schema of settings the merchant edits in the theme editor, without code.", '{% schema %} { "name": "Product grid", … } {% endschema %}'],
+    blocks: ["blocks/*.liquid", "Smaller pieces inside a section: a heading, a product card, a search box. Merchants add, remove and reorder them. Apps can add blocks too.", "{% content_for 'blocks' %}"],
+    snippets: ["snippets/*.liquid", "Shared partials, like a price or a product image. Sections and blocks render them. Merchants never see them.", "{% render 'price', product: product %}"],
+    assets: ["assets/", "Static JS, CSS and images, loaded by the page. Shopify serves them from its CDN exactly as they are. It doesn't build anything, so a developer builds and commits the minified files.", "<script src=\"{{ 'cio-plp-ui.min.js' | asset_url }}\" defer>"],
+    config: ["config/", "Theme-wide settings like colours and fonts, plus the merchant's saved choices, including which app embeds are on.", "settings_schema.json · settings_data.json"],
+    locales: ["locales/", "Translations for the theme's own text, like the menu labels. One file per language.", "en.default.json · fr.json · de.json"],
+  };
+  const order = Object.keys(PARTS);
+  let tourTimer = 0, tourIdx = 0;
+
+  let currentPart = "layout";
+  // Draws DevTools-style inspector boxes over every element of the page that comes from `part`.
+  function showPart(part) {
+    currentPart = part;
+    document.querySelectorAll("#tree button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.part === part)));
+    const [name, text, code] = PARTS[part];
+    const d = $("detail");
+    d.innerHTML = "";
+    const b = document.createElement("b"); b.textContent = name;
+    const p = document.createElement("p"); p.textContent = text;
+    const c = document.createElement("code"); c.textContent = code;
+    d.append(b, p, c);
+    d.classList.remove("swap"); void d.offsetWidth; d.classList.add("swap");
+
+    const layer = $("inspect"), box = $("browser").getBoundingClientRect();
+    layer.innerHTML = "";
+    const labelled = new Set();
+    $("browser").querySelectorAll(`[data-part="${part}"]`).forEach((el) => {
+      const r = el.getBoundingClientRect(), pad = 3;
+      const ov = document.createElement("div");
+      ov.className = "ov";
+      ov.style.left = `${r.left - box.left - pad}px`;
+      ov.style.top = `${r.top - box.top - pad}px`;
+      ov.style.width = `${r.width + pad * 2}px`;
+      ov.style.height = `${r.height + pad * 2}px`;
+      // Label each file once, so four product cards show one "blocks/product-card.liquid" tag.
+      if (el.dataset.file && !labelled.has(el.dataset.file)) {
+        labelled.add(el.dataset.file);
+        const tag = document.createElement("b");
+        tag.textContent = el.dataset.file;
+        ov.appendChild(tag);
+        if (r.top - box.top < 24) ov.classList.add("below");
+      }
+      layer.appendChild(ov);
+    });
+  }
+  // The tour runs while "Auto tour" is on; hovering the page pauses it, picking a folder turns it off.
+  let tourPaused = false;
+  const autoTour = $("autoTour");
+  if (reduced) autoTour.checked = false;
+  function runTour() {
+    clearInterval(tourTimer);
+    if (!autoTour.checked) return;
+    tourTimer = setInterval(() => {
+      if (tourPaused) return;
+      tourIdx = (tourIdx + 1) % order.length;
+      showPart(order[tourIdx]);
+    }, 2800);
+  }
+  function startTour() {
+    tourIdx = 0;
+    showPart(order[0]);
+    runTour();
+  }
+  function stopTour() { clearInterval(tourTimer); }
+  autoTour.addEventListener("change", () => (autoTour.checked ? runTour() : stopTour()));
+  $("tree").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-part]");
+    if (!b) return;
+    autoTour.checked = false;
+    stopTour();
+    tourIdx = order.indexOf(b.dataset.part);
+    showPart(b.dataset.part);
+  });
+  $("plp").parentElement.addEventListener("mouseover", (e) => {
+    const el = e.target.closest("[data-part]");
+    tourPaused = true;
+    if (!el || el.dataset.part === currentPart) return;
+    tourIdx = order.indexOf(el.dataset.part);
+    showPart(el.dataset.part);
+  });
+  $("browser").addEventListener("mouseleave", () => { tourPaused = false; });
+  addEventListener("resize", () => { if (levels[state.current].dataset.id === "theme") showPart(currentPart); });
+
+  /* --- 4 · Build setup ------------------------------------------------------------------------- */
+
+  const B_LABELS = [
+    "Shopify uploads the theme folders and ignores the rest",
+    "You write code in src/",
+    "webpack bundles, transpiles and minifies it",
+    "The output lands in assets/",
+    "A theme file loads it with asset_url",
+  ];
+  const bTicks = $("bTicks");
+  bTicks.innerHTML = B_LABELS.map((l, i) => (i ? "<span></span>" : "") + `<button aria-label="Step ${i + 1}: ${l}"></button>`).join("");
+  const bTickBtns = [...bTicks.querySelectorAll("button")];
+  const bTickLines = [...bTicks.querySelectorAll("span")];
+  const bPacket = $("bPacket");
+  const tsteps = [...document.querySelectorAll("#bPack .tstep")];
+  const srcFiles = [...document.querySelectorAll("#bSrc [data-src]")];
+  let bRun = 0, bTimer = 0;
+  const wait = (ms) => new Promise((r) => (bTimer = setTimeout(r, reduced ? 1 : ms)));
+
+  function bCenter(el) {
+    const f = $("flow").getBoundingClientRect(), r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2 - f.left - 7, y: r.top + r.height / 2 - f.top - 7 };
+  }
+  function bFly(a, b) {
+    const A = bCenter(a), B = bCenter(b);
+    return bPacket.animate(
+      [{ transform: `translate(${A.x}px, ${A.y}px)`, opacity: 0 }, { opacity: 1, offset: 0.15 }, { opacity: 1, offset: 0.85 }, { transform: `translate(${B.x}px, ${B.y}px)`, opacity: 0 }],
+      { duration: reduced ? 1 : 850, easing: "cubic-bezier(0.6, 0, 0.3, 1)", fill: "forwards" }
+    ).finished.catch(() => {});
+  }
+  const card = (id, v) => $(id).classList.toggle("on", v);
+
+  function bReset() {
+    ["bRepo", "bSrc", "bPack", "bAssets", "bTheme"].forEach((id) => card(id, false));
+    $("repo").classList.remove("ignoring");
+    srcFiles.forEach((f) => f.classList.remove("hl"));
+    tsteps.forEach((t) => t.classList.remove("on"));
+    ["outJs", "outCss"].forEach((id) => $(id).classList.remove("show"));
+    ["lnJs", "lnCss"].forEach((id) => $(id).classList.remove("hl"));
+    bPacket.getAnimations().forEach((a) => a.cancel());
+  }
+  // Each step leaves its result on screen, so the final frame shows the whole pipeline.
+  const B_STEPS = [
+    async () => { card("bRepo", true); await wait(500); $("repo").classList.add("ignoring"); await wait(1100); await bFly($("srcRow"), $("bSrc")); card("bRepo", false); },
+    async () => { card("bSrc", true); srcFiles.forEach((f) => f.classList.add("hl")); await wait(500); await bFly(srcFiles[0], $("bPack")); card("bSrc", false); },
+    async (run) => { card("bPack", true); for (const t of tsteps) { if (run !== bRun) return; t.classList.add("on"); await wait(380); } },
+    async () => { await bFly($("bPack"), $("outJs")); card("bPack", false); card("bAssets", true); $("outJs").classList.add("show"); await wait(250); $("outCss").classList.add("show"); },
+    async () => { await bFly($("outJs"), $("lnJs")); card("bAssets", false); card("bTheme", true); $("lnCss").classList.add("hl"); $("lnJs").classList.add("hl"); },
+  ];
+  function bSetStep(i) {
+    bTickBtns.forEach((b, j) => { b.classList.toggle("on", j === i); b.classList.toggle("done", j < i); });
+    bTickLines.forEach((l, j) => l.classList.toggle("done", j < i));
+    const label = $("bLabel");
+    label.textContent = B_LABELS[i];
+    label.classList.remove("swap"); void label.offsetWidth; label.classList.add("swap");
+  }
+  async function playBuild(from) {
+    stopBuild();
+    const run = ++bRun;
+    bReset();
+    // Jumping ahead applies the earlier steps' results instantly.
+    if (from > 0) $("repo").classList.add("ignoring");
+    if (from > 1) srcFiles.forEach((f) => f.classList.add("hl"));
+    if (from > 2) tsteps.forEach((t) => t.classList.add("on"));
+    if (from > 3) ["outJs", "outCss"].forEach((id) => $(id).classList.add("show"));
+    for (let i = from; i < B_STEPS.length; i++) {
+      if (run !== bRun) return;
+      bSetStep(i);
+      await B_STEPS[i](run);
+      if (run !== bRun) return;
+      await wait(1300);
+    }
+  }
+  function stopBuild() { bRun++; clearTimeout(bTimer); }
+  bTickBtns.forEach((b, i) => b.addEventListener("click", () => playBuild(i)));
+  $("bReplay").addEventListener("click", () => playBuild(0));
+
+  /* --- Code viewer ----------------------------------------------------------------------------- */
+
+  // From the Constructor demo theme. The JS and Liquid are trimmed to the essentials for the slide:
+  // the real files wrap this in a <cio-plp-ui> custom element and read the API key from block settings.
+  const SOURCE = {"js": {"path": "src/plp-ui/cio-plp-ui.build.js", "lang": "js", "code": "// Constructor PLP (product listing page), bundled with React inside.\nimport CioPlp from '@constructor-io/constructorio-ui-plp/constructorio-ui-plp-bundled';\nimport { createFormatPrice, getItemUrl, onAddToCart } from '@/plp-shared/shopify';\n\nCioPlp({\n  selector: '#cio-plp',\n  apiKey: 'key_YOUR_API_KEY',\n  resultsPerPage: 24,\n  useShopifyDefaults: true,\n  callbacks: { onAddToCart },\n  itemFieldGetters: { getItemUrl },\n  formatters: { formatPrice: createFormatPrice() },\n});", "marks": [[2, 2, "From node_modules"], [5, 13, "Starts the PLP with its props"]], "simplified": true}, "css": {"path": "src/plp-ui/cio-plp-ui.build.css", "lang": "css", "code": "/*\n * Constructor PLP (bundled) styles.\n * The bundled library injects its own starter CSS (scoped to `.cio-plp`) at runtime.\n */\n\n@import '../plp-shared/cio-plp-theme.css';\n\ncio-plp-ui {\n  display: block;\n  width: 100%;\n}\n\n.cio-plp-ui__notice {\n  padding: 16px;\n  border: 1px dashed rgb(var(--color-foreground-rgb) / 40%);\n  border-radius: var(--style-border-radius-inputs, 4px);\n  font-size: 14px;\n}\n\n/* The shared card is purple (React); teal here tells the bundled override apart. */\ncio-plp-ui .cio-custom-card {\n  --cio-custom-card-accent: #0f766e;\n}", "marks": [[6, 6, "Inlined at build time"]]}, "liquid": {"path": "blocks/cio-plp-ui.liquid", "lang": "liquid", "code": "{{ 'cio-plp-ui.min.css' | asset_url | stylesheet_tag }}\n<script src=\"{{ 'cio-plp-ui.min.js' | asset_url }}\" defer><\/script>\n\n<div id=\"cio-plp\"><\/div>\n\n{% schema %} … {% endschema %}", "marks": [[1, 2, "Loads the built assets"], [4, 4, "The PLP renders here"]], "simplified": true}, "minjs": {"path": "assets/cio-plp-ui.min.js", "lang": "min", "code": "!function(){\"use strict\";var e={};e.g=function(){if(\"object\"==typeof globalThis)return globalThis;try{return this||new Function(\"return this\")()}catch(e){if(\"object\"==typeof window)return window}}(),function(){try{if(typeof document<\"u\"){var e=document.createElement(\"style\");e.id=\"cio-plp-styles\",e.appendChild(document.createTextNode('@import\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap\";/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */@layer properties;@layer theme,base,components,utilities;@layer theme{:root,:host{--cio-color-red-200: oklch(88.5% .062 18.334);--cio-color-red-500: oklch(63.7% .237 25.331);--cio-color-red-600: oklch(57.7% .245 27.325);--cio-color-orange-500: oklch(70.5% .213 47.604);--cio-color-yellow-500: oklch(79.5% .184 86.047);--cio-color-green-600: oklch(62.7% .194 149.214);--cio-color-emerald-50: oklch(97.9% .021 166.113);--cio-color-emerald-100: oklch(95% .052 163.051);--cio-color-emerald-200: oklch(90.5% .093 164.15);--cio-color-emerald-300: oklch(84.5% .143 164.978);--cio-color-emerald-600: oklch(59.6% .145 163.225);--cio-color-emerald-800: oklch(43.2% .095 166.913);--cio-color-teal-50: oklch(98.4% .014 180.72);--cio-color-blue-50: oklch(97% .014 254.604);--cio-color-blue-100: oklch(93.2% .032 255.585);--cio-color-blue-200: oklch(88.2% .059 254.128);--cio-color-blue-500: oklch(62.3% .214 259.815);--cio-color-blue-600: oklch(54.6% .245 262.881);--cio-color-blue-700: oklch(48.8% .243 264.376);--cio-color-blue-800: oklch(42.4% .199 265.638);--cio-color-indigo-50: oklch(96.2% .018 272.314);--cio-color-indigo-100: oklch(93% .034 272.788);--cio-color-indigo-600: oklch(51.1% .262 276.966);--cio-color-indigo-700: oklch(45.7% .24 277.023);--cio-color-purple-50: oklch(97.7% .014 308.299);--cio-color-purple-100: oklch(94.6% .033 307.174);--cio-color-purple-500: oklch(62.7% .265 303.9);--cio-color-purple-600: oklch(55.8% .288 302.321);--cio-color-purple-700: oklch(49.6% .265 301.924);--cio-color-purple-800: oklch(43.8% .218 303.724);--cio-color-pink-500: oklch(65.6% .241 354.308);--cio-color-pink-600: oklch(59.2% .249 .584);--cio-color-slate-50: oklch(98.4% .003 247.858);--cio-color-slate-100: oklch(96.8% .007 247.896);--cio-color-slate-200: oklch(92.9% .013 255.508);--cio-color-slate-300: oklch(86.9% .022 252.894);--cio-color-slate-500: oklch(55.4% .046 257.417);--cio-color-slate-700: oklch(37.2% .044 257.287);--cio-color-slate-900: oklch(20.8% .042 265.755);--cio-color-slate-950: oklch(12.9% .042 264.695);--cio-color-gray-50: oklch(98.5% .002 247.839);--cio-color-gray-100: oklch(96.7% .003 264.542);--cio-color-gray-200: oklch(92.8% .006 264.531);--cio-color-gray-400: oklch(70.7% .022 261.325);--cio-color-gray-500: oklch(55.1% .027 264.364);--cio-color-gray-600: oklch(44.6% .03 256.802);--cio-color-gray-700: oklch(37.3% .034 259.733);--cio-color-gray-800: oklch(27.8% .033 256.848);--cio-color-neutral-100: oklch(97% 0 0);--cio-color-black: #000;--cio-color-white: #fff;--cio-spacing: .25rem;--cio-container-sm: 24rem;--cio-container-lg: 32rem;--cio-text-xs: .75rem;--cio-text-xs--line-height: calc(1 / .75);--cio-text-sm: .875rem;--cio-text-sm--line-height: calc(1.25 / .875);--cio-text-base: 1rem;--cio-text-base--line-height: 1.5 ;--cio-text-lg: 1.125rem;--cio-text-lg--line-height: calc(1.75 / 1.125);--cio-text-xl: 1.25rem;--cio-text-xl--line-height: calc(1.75 / 1.25);--cio-text-2xl: 1.5rem;--cio-text-2xl--line-height: calc(2 / 1.5);--cio-font-weight-medium: 500;--cio-font-weight-semibold: 600;--cio-font-weight-bold: 700;--cio-tracking-tighter: -.05em;--cio-tracking-wide: .025em;--cio-radius-2xl: 1rem;--cio-radius-3xl: 1.5rem;--cio-default-transition-duration: .15s;--cio-default-transition-timing-function: cubic-bezier(.4, 0, .2, 1)}}@layer utilities{.cio\\\\:\\\\@container\\\\/card-header{container-type:inline-size;container-name:card-header}.cio\\\\:pointer-events-none{pointer-events:none}.cio\\\\:invisible{visibility:hidden}.cio\\\\:sr-only{position:absolute;width:1px;heigh …", "marks": [], "banner": [["1 line", ""], ["379.1 KB", "raw"], ["89.2 KB", "Brotli, what shoppers download"]], "foot": "Showing the first 4,000 of 379,056 characters. React, the PLP library and the JS client are all in here."}, "mincss": {"path": "assets/cio-plp-ui.min.css", "lang": "min", "code": ".cio-plp{color:var(--color-foreground);font-family:inherit}.cio-plp .cio-filter-option-input{display:none}.cio-custom-card{--cio-custom-card-accent:#6d28d9;border:2px solid var(--cio-custom-card-accent);border-radius:var(--style-border-radius-inputs,4px);box-sizing:border-box;display:flex;flex-direction:column;gap:8px;height:100%;padding:8px}.cio-custom-card__link{color:inherit;display:flex;flex:1;flex-direction:column;gap:4px;text-decoration:none}.cio-custom-card__image{aspect-ratio:1/1;border-radius:var(--product-corner-radius,4px);display:block;object-fit:cover;width:100%}.cio-custom-card__title{font-size:14px;line-height:1.3}.cio-custom-card__price{font-size:14px;font-weight:600}.cio-custom-card__add{background-color:var(--cio-custom-card-accent);border:0;border-radius:var(--style-border-radius-buttons-primary,4px);color:#fff;cursor:pointer;font:inherit;font-size:14px;padding:8px 12px}cio-plp-ui{display:block;width:100%}.cio-plp-ui__notice{border:1px dashed rgb(var(--color-foreground-rgb)/40%);border-radius:var(--style-border-radius-inputs,4px);font-size:14px;padding:16px}cio-plp-ui .cio-custom-card{--cio-custom-card-accent:#0f766e}", "marks": [], "banner": [["1 line", ""], ["1.2 KB", "raw"]], "foot": "The whole file. The @import from src/ is inlined and comments are gone."}};
+  const KW = /^(import|from|export|default|class|extends|const|let|if|return|new|this|undefined|true|false|function)$/;
+  const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // A small highlighter: comments, strings, keywords and calls for JS; comments and strings for CSS;
+  // Liquid tags and HTML tags for Liquid. Good enough for slides, not a parser.
+  function highlight(code, lang) {
+    const out = [];
+    let inBlock = false;
+    for (const line of code.split("\n")) {
+      let html = "", i = 0;
+      while (i < line.length) {
+        if (inBlock) {
+          const end = line.indexOf("*/", i);
+          const stop = end === -1 ? line.length : end + 2;
+          html += `<span class="tk-com">${esc(line.slice(i, stop))}</span>`;
+          i = stop;
+          if (end !== -1) inBlock = false;
+          continue;
+        }
+        const rest = line.slice(i);
+        let m;
+        if (lang !== "liquid" && rest.startsWith("/*")) { inBlock = true; continue; }
+        if (lang === "js" && rest.startsWith("//")) { html += `<span class="tk-com">${esc(rest)}</span>`; break; }
+        if (lang === "liquid" && (m = rest.match(/^(\{%-?[\s\S]*?-?%\}|\{\{-?[\s\S]*?-?\}\})/))) { html += `<span class="tk-kw">${esc(m[0])}</span>`; i += m[0].length; continue; }
+        if (lang === "liquid" && rest.startsWith("{%")) { html += `<span class="tk-kw">${esc(rest)}</span>`; break; }
+        if (lang === "liquid" && (m = rest.match(/^<\/?[a-zA-Z][\w-]*/))) { html += `<span class="tk-tag">${esc(m[0])}</span>`; i += m[0].length; continue; }
+        if ((m = rest.match(/^(['"`])(?:\\.|(?!\1).)*\1/))) { html += `<span class="tk-str">${esc(m[0])}</span>`; i += m[0].length; continue; }
+        if (lang === "js" && (m = rest.match(/^[A-Za-z_$][\w$]*/))) {
+          const w = m[0], after = line[i + w.length];
+          html += KW.test(w) ? `<span class="tk-kw">${w}</span>` : after === "(" ? `<span class="tk-fn">${w}</span>` : w;
+          i += w.length;
+          continue;
+        }
+        html += esc(line[i]);
+        i++;
+      }
+      out.push(html);
+    }
+    return out;
+  }
+
+  let edFile = "js", edOpen = false;
+  function showFile(key) {
+    edFile = key;
+    const f = SOURCE[key];
+    const lines = f.lang === "min" ? [esc(f.code)] : highlight(f.code, f.lang);
+    const box = $("edCode");
+    box.innerHTML = "";
+    box.classList.toggle("min", f.lang === "min");
+    if (f.banner) {
+      const b = document.createElement("div");
+      b.className = "min-banner";
+      f.banner.forEach(([v, l]) => { const sp = document.createElement("span"); sp.innerHTML = `<b>${esc(v)}</b>${esc(l)}`; b.appendChild(sp); });
+      box.appendChild(b);
+    }
+    lines.forEach((html, idx) => {
+      const n = idx + 1;
+      const mark = f.marks.find(([a, b]) => n >= a && n <= b);
+      const row = document.createElement("div");
+      row.className = "cl" + (mark ? " hl" : "");
+      row.innerHTML = `<span class="n">${n}</span><span class="c">${html || " "}</span>`;
+      if (mark && mark[0] === n) {
+        const note = document.createElement("span");
+        note.className = "note";
+        note.textContent = mark[2];
+        row.querySelector(".c").appendChild(note);
+      }
+      box.appendChild(row);
+    });
+    if (f.foot) {
+      const ft = document.createElement("div");
+      ft.className = "min-foot";
+      ft.textContent = f.foot;
+      box.appendChild(ft);
+    }
+    box.scrollTop = 0;
+    document.querySelectorAll("#edTabs .tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.file === key)));
+    document.querySelectorAll(".ed-side .ex[data-file]").forEach((x) => x.classList.toggle("on", x.dataset.file === key));
+    // The JS imports the library, so point at it in node_modules.
+    $("exNpm").classList.toggle("lit", key === "js");
+    $("edFlag").hidden = !f.simplified;
+  }
+
+  function openEditor(key, fromEl) {
+    showFile(key);
+    const wrap = $("edWrap");
+    wrap.hidden = false;
+    edOpen = true;
+    const s = stage.getBoundingClientRect(), r = fromEl.getBoundingClientRect();
+    const ed = $("editor"), e = ed.getBoundingClientRect();
+    ed.style.transformOrigin = `${r.left + r.width / 2 - e.left}px ${r.top + r.height / 2 - e.top}px`;
+    if (!reduced) {
+      ed.animate([{ transform: "scale(0.2)", opacity: 0 }, { transform: "scale(1)", opacity: 1 }], { duration: 520, easing: "cubic-bezier(0.65, 0, 0.25, 1)" });
+      wrap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
+    }
+    $("edClose").focus({ preventScroll: true });
+  }
+  function closeEditor() {
+    if (!edOpen) return;
+    edOpen = false;
+    const wrap = $("edWrap"), ed = $("editor");
+    if (reduced) { wrap.hidden = true; return; }
+    ed.animate([{ transform: "scale(1)", opacity: 1 }, { transform: "scale(0.2)", opacity: 0 }], { duration: 380, easing: "cubic-bezier(0.65, 0, 0.25, 1)" });
+    wrap.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 380 }).onfinish = () => { wrap.hidden = true; };
+  }
+
+  stage.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-open]");
+    if (t && !edOpen) openEditor(t.dataset.open, t);
+  });
+  stage.addEventListener("keydown", (e) => {
+    const t = e.target.closest("[data-open]");
+    if (t && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openEditor(t.dataset.open, t); }
+  });
+  $("edWrap").addEventListener("click", (e) => { if (e.target === $("edWrap")) closeEditor(); });
+  $("edClose").addEventListener("click", closeEditor);
+  document.querySelectorAll("#edTabs .tab, .ed-side .ex[data-file]").forEach((b) => b.addEventListener("click", () => showFile(b.dataset.file)));
+
+  /* --- Start ------------------------------------------------------------------------------------ */
+
+  const startIdx = Math.max(0, levels.findIndex((l) => l.dataset.id === location.hash.slice(1)));
+  state.current = startIdx;
+  levels[startIdx].classList.add("active");
+  fillStore();
+  renderChrome();
+  enter(startIdx);
+</script>
