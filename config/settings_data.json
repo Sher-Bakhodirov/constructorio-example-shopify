@@ -84,19 +84,14 @@
         "settings": {
           "bundle_name": "you_bundle_name_here"
         }
-      },
-      "5311861640926524583": {
-        "type": "shopify://apps/constructor-connect/blocks/promotions/01a14ee0-1d93-7526-9ca9-3128c74fd0b7",
-        "disabled": false,
-        "settings": {}
       }
     },
     "color_palette": {
       "background": "#ffffff",
       "foreground": "#000000",
-      "color1": "#333333",
-      "color2": "#EEF1EA",
-      "color3": "#DFDFDF"
+      "color1": "#2B579B",
+      "color2": "#eef1ea",
+      "color3": "#dfdfdf"
     }
   },
   "presets": {
