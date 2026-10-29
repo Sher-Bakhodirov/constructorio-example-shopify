@@ -12,10 +12,6 @@
     "cart-section": {
       "type": "main-cart",
       "blocks": {
-        "constructor_connect_promotion_message_hXyzgD": {
-          "type": "shopify://apps/constructor-connect/blocks/promotion-message/01a14ee0-1d93-7526-9ca9-3128c74fd0b7",
-          "settings": {}
-        },
         "cart-page-title": {
           "type": "_cart-title",
           "static": true,
@@ -69,9 +65,6 @@
           "blocks": {}
         }
       },
-      "block_order": [
-        "constructor_connect_promotion_message_hXyzgD"
-      ],
       "settings": {
         "section_width": "page-width",
         "background_color": "",
@@ -281,14 +274,45 @@
     },
     "17925113463311094f": {
       "type": "_blocks",
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "flex-start",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 12,
+        "section_width": "page-width",
+        "section_height": "",
+        "section_height_custom": 50,
+        "background_media": "none",
+        "background_color": "",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_color": "",
+        "border_radius": 0,
+        "padding-block-start": 0,
+        "padding-block-end": 0
+      }
+    },
+    "1793276499073b9616": {
+      "type": "_blocks",
       "blocks": {
-        "constructor_connect_promotion_message_gL76K3": {
-          "type": "shopify://apps/constructor-connect/blocks/promotion-message/01a14ee0-1d93-7526-9ca9-3128c74fd0b7",
+        "constructor_ai_search_recs_promotion_message_tRAHAK": {
+          "type": "shopify://apps/constructor-ai-search-recs/blocks/promotion-message/01a1742e-1bc0-7d4f-a08d-4cf3ec486263",
           "settings": {}
         }
       },
       "block_order": [
-        "constructor_connect_promotion_message_gL76K3"
+        "constructor_ai_search_recs_promotion_message_tRAHAK"
       ],
       "settings": {
         "content_direction": "column",
@@ -323,6 +347,7 @@
   "order": [
     "cart-section",
     "product_list_NNFgcy",
-    "17925113463311094f"
+    "17925113463311094f",
+    "1793276499073b9616"
   ]
 }
