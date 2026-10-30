@@ -90,7 +90,7 @@
       },
       "9646713560591400222": {
         "type": "shopify://apps/constructor-ai-search-recs/blocks/promotions/01a1742e-1bc0-7d4f-a08d-4cf3ec486263",
-        "disabled": false,
+        "disabled": true,
         "settings": {
           "show_in_drawer": true,
           "drawer_selector": ""
