@@ -1,92 +1,136 @@
-# Horizon
+# Constructor × Shopify example theme
 
-[Getting started](#getting-started) |
-[Staying up to date with Horizon changes](#staying-up-to-date-with-horizon-changes) |
-[Developer tools](#developer-tools) |
-[Contributing](#contributing) |
-[License](#license)
+A Shopify theme that shows the different ways to integrate [Constructor](https://constructor.com) search and browse into a Shopify storefront, side by side, on one store.
 
-Horizon is the flagship of a new generation of first party Shopify themes. It incorporates the latest Liquid Storefronts features, including [theme blocks](https://shopify.dev/docs/storefronts/themes/architecture/blocks/theme-blocks/quick-start?framework=liquid).
+Each approach is implemented for two features:
 
-- **Web-native in its purest form:** Themes run on the [evergreen web](https://www.w3.org/2001/tag/doc/evergreen-web/). We leverage the latest web browsers to their fullest, while maintaining support for the older ones through progressive enhancement—not polyfills.
-- **Lean, fast, and reliable:** Functionality and design defaults to "no" until it meets this requirement. Code ships on quality. Themes must be built with purpose. They shouldn't support each and every feature in Shopify.
-- **Server-rendered:** HTML must be rendered by Shopify servers using Liquid. Business logic and platform primitives such as translations and money formatting don't belong on the client. Async and on-demand rendering of parts of the page is OK, but we do it sparingly as a progressive enhancement.
-- **Functional, not pixel-perfect:** The Web doesn't require each page to be rendered pixel-perfect by each browser engine. Using semantic markup, progressive enhancement, and clever design, we ensure that themes remain functional regardless of the browser.
+- **Autocomplete**: the search box and its dropdown
+- **PLP** (product listing page): the product grid with filters, sorting and pagination on collection and search pages
+
+The theme is based on Shopify's [Horizon](https://github.com/Shopify/horizon) theme. All Constructor code is kept separate from Horizon's own files, so you can copy an approach into another theme.
+
+## The approaches
+
+| Approach | What it is | Code you maintain | Autocomplete | PLP |
+| --- | --- | --- | --- | --- |
+| **A. Constructor Connect app** | Constructor's [Shopify app](https://apps.shopify.com/constructor-connect) with ready-made theme blocks. No code. | None | [docs](docs/autocomplete-connect-app.md) | No doc yet |
+| **B. UI library (bundled)** | Constructor's UI library from npm, using its pre-built bundle (React included). Exposed as a theme block. | A small wrapper | [docs](docs/autocomplete-ui-library.md) | [docs](docs/plp-ui.md) |
+| **C. React environment** | The same UI library used as React components, with React installed by the theme. | A small React app | [docs](docs/autocomplete-react.md) | [docs](docs/plp-react.md) |
+| **D. Custom UI** | Our own UI built only on Constructor's [JavaScript client](https://github.com/Constructor-io/constructorio-client-javascript). | The whole UI | [docs](docs/autocomplete-custom.md) | [docs](docs/plp-custom.md) |
+
+### Which one to choose?
+
+- **A** when the merchant wants Constructor running with no development work, and the app's blocks and settings are enough.
+- **B** when you need more control than the app gives (custom settings, overriding how items render) but still want Constructor to maintain the UI.
+- **C** when the storefront already uses React, or you want to wrap the library in your own React components and hooks.
+- **D** when page speed or full control over markup and design matters most. You own the UI, keyboard support and tracking calls.
+
+### Size and trade-offs
+
+JavaScript size, gzipped, from the production files in `/assets`:
+
+| | B. UI library | C. React | D. Custom UI |
+| --- | ---: | ---: | ---: |
+| Autocomplete | 84 KB | 106 KB | **26 KB** |
+| PLP | 104 KB | 130 KB | **25 KB** |
+
+Approach A isn't listed because the app loads the UI library from Constructor's CDN, not from this theme. Its size is in the same range as B.
+
+The smaller size of D has a cost. You implement and maintain features that the UI library gives you for free. For example, the custom PLP supports multi-choice filters only (no price range) and collection pages only (no search page). Each approach's doc has a full trade-off table.
 
 ## Getting started
 
-We recommend using the Skeleton Theme as a starting point for a theme development project. [Learn more on Shopify.dev](https://shopify.dev/themes/getting-started/create).
+### Requirements
 
-To create a new theme project based on Horizon:
+- A Shopify development store
+- [Shopify CLI](https://shopify.dev/docs/storefronts/themes/tools/cli)
+- [Node.js](https://nodejs.org/), only if you want to change the code of approaches B, C or D
+- A Constructor index with your Shopify catalog synced to it
+
+### Run the theme locally
 
 ```sh
-git clone https://github.com/Shopify/horizon.git
+git clone <this repo>
+cd constructorio-example-shopify
+shopify theme dev --store <your-store>.myshopify.com
 ```
 
-Install the [Shopify CLI](https://shopify.dev/docs/storefronts/themes/tools/cli) to connect your local project to a Shopify store. Learn about the [theme developer tools](https://shopify.dev/docs/storefronts/themes/tools) available, and the suggested [developer tools](#developer-tools) below.
+The built JavaScript and CSS are committed to `/assets`, so the theme works without running the build.
 
-Please note that the `main` branch may include code for features not yet released. You may encounter Liquid API properties that are not publicly documented, but will be when the feature is officially rolled out.
+### Add your Constructor key
 
-### Shopify Theme Store development
+In the theme editor, go to **Theme settings → Constructor** and paste your index key (`key_...`). Every Constructor block uses this key, and each block can override it.
 
-If you're building a theme for the Shopify Theme Store, then do not use Horizon as a starting point. Themes based on, derived from, or incorporating Horizon are not eligible for submission to to the Shopify Theme Store. Use the [Skeleton Theme](https://github.com/Shopify/skeleton-theme) instead.
+### See an approach
 
-## Staying up to date with Horizon changes
+Every approach has its own template. Assign the template to a page or collection in Shopify admin under **Theme template**, or preview it without assigning by adding `?view=<template>` to the URL:
 
-Say you're building a new theme off Horizon but you still want to be able to pull in the latest changes, you can add a remote `upstream` pointing to this Horizon repository.
-
-1. Navigate to your local theme folder.
-2. Verify the list of remotes and validate that you have both an `origin` and `upstream`:
-
-```sh
-git remote -v
+```
+/collections/shoes?view=cio-plp-custom
 ```
 
-3. If you don't see an `upstream`, you can add one that points to Shopify's Horizon repository:
+| Approach | Autocomplete templates | PLP templates |
+| --- | --- | --- |
+| A. Connect app | `collection.cio-autocomplete-app` | — |
+| B. UI library | `page.cio-autocomplete-ui`, `collection.cio-autocomplete-ui` | `collection.cio-plp-ui`, `search.cio-plp-ui` |
+| C. React | `page.cio-autocomplete-react`, `collection.cio-autocomplete-react` | `collection.cio-plp-react`, `search.cio-plp-react` |
+| D. Custom UI | `page.cio-autocomplete-custom`, `collection.cio-autocomplete-custom` | `collection.cio-plp-custom` |
+
+You can also add any Constructor block yourself: in the theme editor, click **Add section** and look for the **CIO** sections.
+
+Approach A needs the Constructor Connect app installed first. See [its doc](docs/autocomplete-connect-app.md) for the setup steps.
+
+### Change the code
+
+Approaches B, C and D are written in `/src` and built with webpack into `/assets`:
 
 ```sh
-git remote add upstream https://github.com/Shopify/horizon.git
+npm install
+npm run dev     # rebuild on change, in one terminal
+shopify theme dev   # in another terminal
+npm run build   # minified build, run before committing
 ```
 
-4. Pull in the latest Horizon changes into your repository:
+See [build setup](docs/build-setup.md) for how the build works. You don't need this setup to integrate Constructor; use your own build if you have one.
+
+## Project structure
+
+Only the Constructor-specific files are listed. Everything else is Horizon.
+
+```
+src/                    Source for approaches B, C, D (not uploaded to Shopify)
+  autocomplete-ui/        B. Autocomplete, bundled UI library
+  autocomplete-react/     C. Autocomplete, React
+  autocomplete-custom/    D. Autocomplete, custom UI
+  autocomplete-shared/    Options and theme styling shared by autocomplete approaches
+  plp-ui/                 B. PLP, bundled UI library
+  plp-react/              C. PLP, React
+  plp-custom/             D. PLP, custom UI
+  plp-shared/             Shopify helpers and theme styling shared by PLP approaches
+assets/cio-*.min.*      Build output from /src (committed, don't edit by hand)
+blocks/cio-*.liquid     Theme blocks for each approach and their settings
+sections/cio-*.liquid   Sections that wrap the blocks, so they can be added on their own
+templates/*.cio-*.json  Demo templates, one per approach and page type
+config/settings_schema.json   "Constructor" theme settings (index key)
+docs/                   Documentation for each approach (not uploaded to Shopify)
+```
+
+## Shopify Explorer
+
+[`docs/shopify-explorer.html`](docs/shopify-explorer.html) is an interactive walkthrough of how a Shopify storefront is put together: themes, templates, sections, blocks, apps, and where Constructor fits in. It's useful if you're new to Shopify.
+
+Open the file in a browser, or view it on the store by assigning the `page.explorer` template to a page. The template is a copy of the HTML file, so update both when you change it.
+
+## Staying up to date with Horizon
+
+This theme tracks Horizon's releases. To pull in the latest Horizon changes:
 
 ```sh
+git remote add upstream https://github.com/Shopify/horizon.git   # first time only
 git fetch upstream
-git pull upstream main
+git merge upstream/main
 ```
 
-## Developer tools
+Because the Constructor code lives in its own `cio-*` files, conflicts are usually limited to the files Shopify writes when settings change in the theme editor, such as `config/settings_data.json` and `templates/*.json`.
 
-There are a number of really useful tools that the Shopify Themes team uses during development. Horizon is already set up to work with these tools.
-
-### Shopify CLI
-
-[Shopify CLI](https://shopify.dev/docs/storefronts/themes/tools/cli) helps you build Shopify themes faster and is used to automate and enhance your local development workflow. It comes bundled with a suite of commands for developing Shopify themes—everything from working with themes on a Shopify store (e.g. creating, publishing, deleting themes) or launching a development server for local theme development.
-
-You can follow this [quick start guide for theme developers](https://shopify.dev/docs/themes/tools/cli) to get started.
-
-### Theme Check
-
-We recommend using [Theme Check](https://github.com/shopify/theme-check) as a way to validate and lint your Shopify themes.
-
-We've added Theme Check to Horizon's [list of VS Code extensions](/.vscode/extensions.json) so if you're using Visual Studio Code as your code editor of choice, you'll be prompted to install the [Theme Check VS Code](https://marketplace.visualstudio.com/items?itemName=Shopify.theme-check-vscode) extension upon opening VS Code after you've forked and cloned Horizon.
-
-You can also run it from a terminal with the following Shopify CLI command:
-
-```bash
-shopify theme check
-```
-
-You can follow the [theme check documentation](https://shopify.dev/docs/storefronts/themes/tools/theme-check) for more details.
-
-#### Shopify/theme-check-action
-
-Horizon runs [Theme Check](#Theme-Check) on every commit via [Shopify/theme-check-action](https://github.com/Shopify/theme-check-action).
-
-## Contributing
-
-We are not accepting contributions to Horizon at this time.
-
-## License
-
-Copyright (c) 2025-present Shopify Inc. See [LICENSE](/LICENSE.md) for further details.
+Note: themes based on Horizon can't be submitted to the Shopify Theme Store. This theme is a reference implementation, not a theme to publish.
