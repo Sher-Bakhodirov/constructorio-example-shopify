@@ -96,6 +96,19 @@ The index key isn't a secret. It's sent to the browser on every page that uses C
 
 The Constructor Connect app (approach A) has its own **Constructor Index Key** setting and doesn't read the metafield. See [its doc](docs/autocomplete-connect-app.md#4-add-the-app-block).
 
+### Demo store password
+
+Shopify development stores can't be made public: Shopify always keeps them behind a password. Since this store is only a demo, the password page (`sections/cio-demo-access.liquid`) explains why there's a password, fills it in, and lets visitors enter with one click.
+
+The password comes from the shop metafield **`constructor.storefront_password`**, for the same reason as the index key: it stays in Shopify admin and out of git. To set it up:
+
+1. Find the store password in **Online Store → Preferences → Password protection**.
+2. Create a shop metafield definition `constructor.storefront_password` of type **Single line text**, and set its value to the password, the same way as the [index key](#add-your-constructor-key).
+
+If the metafield is empty, the page shows a normal password field instead. If you change the store password, update the metafield too, or visitors will see a "That password didn't work" message.
+
+In the theme editor, under **Password page → CIO Demo access**, you can change the heading and intro text and add links to the GitHub repo and the Shopify Explorer page.
+
 ### See an approach
 
 Every approach has its own template. Assign the template to a page or collection in Shopify admin under **Theme template**, or preview it without assigning by adding `?view=<template>` to the URL:
@@ -146,6 +159,7 @@ assets/cio-*.min.*      Build output from /src (committed, don't edit by hand)
 blocks/cio-*.liquid     Theme blocks for each approach and their settings
 sections/cio-*.liquid   Sections that wrap the blocks, so they can be added on their own
 templates/*.cio-*.json  Demo templates, one per approach and page type
+sections/cio-demo-access.liquid   Password page that fills in the demo store password
 config/settings_schema.json   "Constructor" theme settings (index key)
 docs/                   Documentation for each approach (not uploaded to Shopify)
 ```
