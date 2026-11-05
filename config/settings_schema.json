@@ -2122,13 +2122,13 @@
     "settings": [
       {
         "type": "paragraph",
-        "content": "Shared settings for the Constructor integration demos. Each Constructor block can override them."
+        "content": "Shared settings for the Constructor integration demos. Each Constructor block can override them. To keep the key out of the theme files (and git), leave this blank and set the shop metafield constructor.api_key instead."
       },
       {
         "type": "text",
         "id": "cio_api_key",
         "label": "API key",
-        "info": "Your Constructor index key, e.g. key_XXXXXXXXXXXX."
+        "info": "Your Constructor index key, e.g. key_XXXXXXXXXXXX. Leave blank to use the shop metafield constructor.api_key."
       }
     ]
   }

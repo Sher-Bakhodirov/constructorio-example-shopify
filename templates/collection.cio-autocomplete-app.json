@@ -108,7 +108,7 @@
             "enable_default_styles": true,
             "override_default_search": true,
             "version": "1.23.22",
-            "index_key": "key_QXcSdast8nnuNbsp",
+            "index_key": "",
             "search_url": "/search",
             "options_json": "{}"
           }
@@ -118,7 +118,7 @@
           "settings": {
             "enable_default_styles": true,
             "version": "1.2.0",
-            "index_key": "key_QXcSdast8nnuNbsp",
+            "index_key": "",
             "options_json": "{}"
           }
         },

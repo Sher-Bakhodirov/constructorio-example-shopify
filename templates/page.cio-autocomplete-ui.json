@@ -64,7 +64,7 @@
         "autocomplete": {
           "type": "cio-autocomplete-ui",
           "settings": {
-            "api_key": "key_QXcSdast8nnuNbsp",
+            "api_key": "",
             "search_url": "",
             "placeholder": "Search",
             "open_on_focus": true,

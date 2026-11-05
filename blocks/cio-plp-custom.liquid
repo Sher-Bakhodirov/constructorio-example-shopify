@@ -6,7 +6,11 @@
 {% endcomment %}
 
 {% liquid
-  assign api_key = block.settings.api_key | default: settings.cio_api_key | strip
+  comment
+    Key lookup: block setting → Theme settings → Constructor → shop metafield constructor.api_key.
+    The metafield lives in Shopify admin, not in the theme files, so the key stays out of git.
+  endcomment
+  assign api_key = block.settings.api_key | default: settings.cio_api_key | default: shop.metafields.constructor.api_key.value | strip
   comment
     The collection handle is the Constructor group ID (e.g. /collections/shoes → group "shoes").
   endcomment
@@ -80,7 +84,7 @@
       "type": "text",
       "id": "api_key",
       "label": "API key",
-      "info": "Leave blank to use the key from Theme settings → Constructor."
+      "info": "Leave blank to use the key from Theme settings → Constructor, or the shop metafield constructor.api_key."
     },
     {
       "type": "text",

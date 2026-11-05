@@ -19,13 +19,7 @@ The Shopify theme then exposes it as a block, so you can add autocomplete from t
 
 ### 1. Set the API key
 
-In the theme editor, go to:
-
-**Theme settings → Constructor**
-
-Paste your Constructor index key (`key_...`).
-
-You can also override this key for an individual block if needed.
+Set your index key (`key_...`) as the shop metafield `constructor.api_key`, or in **Theme settings → Constructor**. You can also override it for an individual block. See [Add your Constructor key](../README.md#add-your-constructor-key) for why the metafield is recommended.
 
 ### 2. Create a demo page
 

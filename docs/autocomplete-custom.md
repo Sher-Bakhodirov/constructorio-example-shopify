@@ -73,7 +73,7 @@ Most of D's bundle is actually Constructor's JavaScript client. The client conta
 The Shopify setup is the same as B and C:
 
 1. **Set the API key**
-   Go to **Theme settings → Constructor**, or override it for an individual block.
+   Set your index key (`key_...`) as the shop metafield `constructor.api_key`, or in **Theme settings → Constructor**. You can also override it for an individual block. See [Add your Constructor key](../README.md#add-your-constructor-key) for why the metafield is recommended.
 
 2. **Create a demo page**
    Create a page and select the `page.cio-autocomplete-custom` template. For a collection page with the autocomplete above the product grid, use `collection.cio-autocomplete-custom`.

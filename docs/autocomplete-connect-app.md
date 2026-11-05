@@ -61,8 +61,18 @@ Then fill in the block settings:
 | Setting                  | What it does                                                 |
 | ------------------------ | ------------------------------------------------------------ |
 | Autocomplete UI Version  | Which version of the library to load from Constructor's CDN. |
-| Constructor Index Key    | Your API key (`key_…`).                                      |
+| Constructor Index Key    | Your API key (`key_…`). See the note below the table.        |
 | Search URL               | Where searches go, for example `/search`.                    |
 | Enable default CSS?      | Loads the app's own stylesheet.                              |
 | Override default search? | Hides the theme's own header search.                         |
 | Options (JSON)           | Any other option supported by                                |
+
+### About the index key
+
+The app block saves **Constructor Index Key** in the template file (`templates/collection.cio-autocomplete-app.json`), like any other block setting. If the theme is connected to GitHub, the key gets committed.
+
+That's why this repo ships both Connect app blocks (autocomplete and PLP) with the key **blank**. After installing the theme, enter your key in each block, or the blocks won't show anything.
+
+The app doesn't read the theme's `constructor.api_key` shop metafield. To keep the key out of git, try connecting the setting to the metafield in the theme editor instead of typing it: hover over **Constructor Index Key**, click **Connect dynamic source**, and pick the shop metafield `constructor.api_key`. The template file then stores a reference to the metafield instead of the key. Whether this button appears depends on the app block's setting, so check that it shows up.
+
+See [Add your Constructor key](../README.md#add-your-constructor-key) for how to create the metafield.

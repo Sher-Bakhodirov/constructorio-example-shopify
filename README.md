@@ -59,7 +59,42 @@ The built JavaScript and CSS are committed to `/assets`, so the theme works with
 
 ### Add your Constructor key
 
-In the theme editor, go to **Theme settings → Constructor** and paste your index key (`key_...`). Every Constructor block uses this key, and each block can override it.
+Every Constructor block in this theme looks for your index key (`key_...`) in this order and uses the first one it finds:
+
+1. The block's own **API key** setting
+2. **Theme settings → Constructor → API key**
+3. The shop metafield **`constructor.api_key`**
+
+**Use the shop metafield (recommended).** Shopify saves theme editor settings (1 and 2) as files in the theme: `config/settings_data.json` and `templates/*.json`. If your theme is connected to GitHub, Shopify commits those files, so a key typed into the theme editor ends up in git. A shop metafield is stored in Shopify admin instead, so it never appears in the theme files.
+
+To set it up:
+
+1. In Shopify admin, go to **Settings → Metafields and metaobjects → Shop**.
+2. Click **Add definition**. Set **Namespace and key** to `constructor.api_key` and the type to **Single line text**.
+3. Enter your index key as the value and save.
+4. Leave **Theme settings → Constructor → API key** and the blocks' **API key** settings blank.
+
+If your admin doesn't offer a field for the value, set it with the Admin API instead:
+
+```graphql
+mutation {
+  metafieldsSet(metafields: [{
+    ownerId: "gid://shopify/Shop/<your-shop-id>"
+    namespace: "constructor"
+    key: "api_key"
+    type: "single_line_text_field"
+    value: "key_..."
+  }]) {
+    userErrors { field message }
+  }
+}
+```
+
+Use the block's **API key** setting only when one block should use a different index, for example to compare two indexes on one page.
+
+The index key isn't a secret. It's sent to the browser on every page that uses Constructor. Keeping it out of git avoids publishing which index the demo uses, and lets each store that installs this theme use its own key without changing the code.
+
+The Constructor Connect app (approach A) has its own **Constructor Index Key** setting and doesn't read the metafield. See [its doc](docs/autocomplete-connect-app.md#4-add-the-app-block).
 
 ### See an approach
 
